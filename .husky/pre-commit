@@ -1,0 +1,35 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔍 Running pre-commit checks..."
+
+# Security check - prevent environment files from being committed
+if git diff --cached --name-only | grep -E "\.(env|local)$|\.env\."; then
+  echo "🚨 SECURITY ALERT: Environment files detected in commit!"
+  echo "Please remove any .env files from your commit."
+  echo "Files detected:"
+  git diff --cached --name-only | grep -E "\.(env|local)$|\.env\."
+  exit 1
+fi
+
+# Check for real API keys in staged files (not template placeholders)
+if git diff --cached | grep -E "(VITE_SUPABASE_URL|VITE_SUPABASE_ANON_KEY|VITE_OPENAI_API_KEY|VITE_MEALDB_API_KEY|VITE_HUGGINGFACE_TOKEN)" | grep -v "your_.*_here"; then
+  echo "🚨 SECURITY ALERT: Real API keys detected in commit!"
+  echo "Please remove any real API keys from your commit."
+  echo "Template files with placeholder values are allowed."
+  exit 1
+fi
+
+# Run linting
+npm run lint
+
+# Run type checking
+npm run type-check
+
+# Check formatting
+npm run format:check
+
+# Build check
+npm run build
+
+echo "✅ All checks passed!"
