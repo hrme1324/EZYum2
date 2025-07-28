@@ -111,3 +111,27 @@ ALTER TABLE public.grocery_lists ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_allergens ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_appliances ENABLE ROW LEVEL SECURITY;
+
+-- Create smart_suggestions table
+CREATE TABLE IF NOT EXISTS public.smart_suggestions (
+  id TEXT PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  suggestion_type TEXT NOT NULL CHECK (suggestion_type IN ('recipe', 'meal_plan', 'grocery')),
+  title TEXT NOT NULL,
+  description TEXT NOT NULL,
+  reasoning TEXT NOT NULL,
+  ingredients_needed TEXT[] DEFAULT '{}',
+  ingredients_available TEXT[] DEFAULT '{}',
+  estimated_time INTEGER NOT NULL,
+  difficulty TEXT NOT NULL CHECK (difficulty IN ('Easy', 'Medium', 'Hard')),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  used BOOLEAN DEFAULT FALSE
+);
+
+-- RLS Policies for smart_suggestions
+DO $$ BEGIN
+  CREATE POLICY "Users can only access their own smart suggestions" ON public.smart_suggestions
+    FOR ALL USING (auth.uid() = user_id);
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;

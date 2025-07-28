@@ -161,3 +161,18 @@ export interface BarcodeProduct {
     fat?: number;
   };
 }
+
+export interface SmartSuggestion {
+  id: string;
+  user_id: string;
+  suggestion_type: 'recipe' | 'meal_plan' | 'grocery';
+  title: string;
+  description: string;
+  reasoning: string;
+  ingredients_needed: string[];
+  ingredients_available: string[];
+  estimated_time: number;
+  difficulty: 'Easy' | 'Medium' | 'Hard';
+  created_at: string;
+  used: boolean;
+}

@@ -1,6 +1,7 @@
-import React from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, ShoppingBag, ChefHat, TrendingUp, Star, Target } from 'lucide-react';
+import { Calendar, ChefHat, ShoppingBag, Target, TrendingUp } from 'lucide-react';
+import React from 'react';
+import SmartSuggestions from '../components/SmartSuggestions';
 import { useAuthStore } from '../state/authStore';
 
 const Home: React.FC = () => {
@@ -189,25 +190,9 @@ const Home: React.FC = () => {
           </div>
         </div>
 
-        {/* AI Suggestions */}
-        <div className="bg-gradient-to-r from-coral-blush to-orange-400 rounded-xl p-4 text-white">
-          <div className="flex items-center gap-2 mb-2">
-            <Star className="w-5 h-5" />
-            <h3 className="font-medium">Smart Suggestions</h3>
-          </div>
-          <p className="text-sm opacity-90 mb-3">
-            Based on your pantry, here are some quick meal ideas:
-          </p>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between bg-white bg-opacity-20 rounded-lg p-2">
-              <span className="text-sm">Chicken Stir-Fry (15 min)</span>
-              <button className="text-xs bg-white bg-opacity-30 px-2 py-1 rounded">Cook Now</button>
-            </div>
-            <div className="flex items-center justify-between bg-white bg-opacity-20 rounded-lg p-2">
-              <span className="text-sm">Pasta Carbonara (20 min)</span>
-              <button className="text-xs bg-white bg-opacity-30 px-2 py-1 rounded">Cook Now</button>
-            </div>
-          </div>
+        {/* Smart Suggestions */}
+        <div className="mb-6">
+          <SmartSuggestions />
         </div>
       </div>
     </div>
