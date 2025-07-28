@@ -1,14 +1,16 @@
-/// <reference types="vite/client" />
+// / <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  readonly VITE_SUPABASE_URL: string
-  readonly VITE_SUPABASE_ANON_KEY: string
-  readonly VITE_OPENAI_API_KEY?: string
-  readonly VITE_MEALDB_API_KEY?: string
-  readonly VITE_HUGGINGFACE_TOKEN?: string
-  readonly VITE_ANALYTICS_ID?: string
+  readonly VITE_SUPABASE_URL: string;
+  readonly VITE_SUPABASE_ANON_KEY: string;
+  readonly VITE_OPENAI_API_KEY?: string;
+  readonly VITE_MEALDB_API_KEY?: string;
+  readonly VITE_HUGGINGFACE_TOKEN?: string;
+  readonly VITE_ANALYTICS_ID?: string;
+  readonly DEV: boolean;
+  readonly PROD: boolean;
 }
 
 interface ImportMeta {
-  readonly env: ImportMetaEnv
-} 
+  readonly env: ImportMetaEnv;
+}

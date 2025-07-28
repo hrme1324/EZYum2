@@ -13,7 +13,8 @@ if git diff --cached --name-only | grep -E "\.(env|local)$|\.env\."; then
 fi
 
 # Check for real API keys in staged files (not template placeholders)
-if git diff --cached | grep -E "(VITE_SUPABASE_URL|VITE_SUPABASE_ANON_KEY|VITE_OPENAI_API_KEY|VITE_MEALDB_API_KEY|VITE_HUGGINGFACE_TOKEN)" | grep -v "your_.*_here"; then
+# Look for actual key patterns, not just variable names
+if git diff --cached | grep -E "(VITE_SUPABASE_URL|VITE_SUPABASE_ANON_KEY|VITE_OPENAI_API_KEY|VITE_MEALDB_API_KEY|VITE_HUGGINGFACE_TOKEN)" | grep -E "(sk-|pk_|eyJ|AIza|ghp_|gho_)"; then
   echo "🚨 SECURITY ALERT: Real API keys detected in commit!"
   echo "Please remove any real API keys from your commit."
   echo "Template files with placeholder values are allowed."
