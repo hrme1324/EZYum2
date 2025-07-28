@@ -1,37 +1,37 @@
-import React, { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { supabase } from '../api/supabase'
-import LoadingSpinner from '../components/LoadingSpinner'
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../api/supabase';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const AuthCallback: React.FC = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const handleAuthCallback = async () => {
+    const handleAuthCallback = async() => {
       try {
-        const { data, error } = await supabase.auth.getSession()
-        
+        const { data, error } = await supabase.auth.getSession();
+
         if (error) {
-          console.error('Auth callback error:', error)
-          navigate('/')
-          return
+          console.error('Auth callback error:', error);
+          navigate('/');
+          return;
         }
 
         if (data.session) {
           // User is authenticated, redirect to home
-          navigate('/')
+          navigate('/');
         } else {
           // No session, redirect back to onboarding
-          navigate('/')
+          navigate('/');
         }
       } catch (error) {
-        console.error('Auth callback error:', error)
-        navigate('/')
+        console.error('Auth callback error:', error);
+        navigate('/');
       }
-    }
+    };
 
-    handleAuthCallback()
-  }, [navigate])
+    handleAuthCallback();
+  }, [navigate]);
 
   return (
     <div className="min-h-screen bg-off-white flex items-center justify-center">
@@ -40,7 +40,7 @@ const AuthCallback: React.FC = () => {
         <p className="mt-4 text-soft-taupe">Signing you in...</p>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default AuthCallback 
+export default AuthCallback;

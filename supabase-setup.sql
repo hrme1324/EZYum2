@@ -45,6 +45,35 @@ CREATE TABLE IF NOT EXISTS public.grocery_lists (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- New tables for settings and preferences
+CREATE TABLE IF NOT EXISTS public.user_settings (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE UNIQUE,
+  time_budget INTEGER DEFAULT 30,
+  notifications_enabled BOOLEAN DEFAULT true,
+  dark_mode BOOLEAN DEFAULT false,
+  meal_reminders BOOLEAN DEFAULT true,
+  grocery_reminders BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.user_allergens (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  allergen_name TEXT NOT NULL,
+  severity TEXT DEFAULT 'moderate' CHECK (severity IN ('mild', 'moderate', 'severe')),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.user_appliances (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  appliance_name TEXT NOT NULL,
+  appliance_type TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Create RLS policies
 CREATE POLICY "Users can only access their own pantry items"
   ON public.pantry_items FOR ALL
@@ -62,8 +91,23 @@ CREATE POLICY "Users can only access their own grocery lists"
   ON public.grocery_lists FOR ALL
   USING (auth.uid() = user_id);
 
+CREATE POLICY "Users can only access their own settings"
+  ON public.user_settings FOR ALL
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can only access their own allergens"
+  ON public.user_allergens FOR ALL
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can only access their own appliances"
+  ON public.user_appliances FOR ALL
+  USING (auth.uid() = user_id);
+
 -- Enable RLS on all tables
 ALTER TABLE public.pantry_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.recipes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.meals ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.grocery_lists ENABLE ROW LEVEL SECURITY; 
+ALTER TABLE public.grocery_lists ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_allergens ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_appliances ENABLE ROW LEVEL SECURITY;

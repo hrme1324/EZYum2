@@ -1,12 +1,12 @@
 // App constants
-export const APP_NAME = 'Ezyum'
-export const APP_DESCRIPTION = 'Smart meal planning for students'
+export const APP_NAME = 'Ezyum';
+export const APP_DESCRIPTION = 'Smart meal planning for students';
 
 // API endpoints
 export const API_ENDPOINTS = {
   MEALDB: 'https://www.themealdb.com/api/json/v1/1',
   OPENFOODFACTS: 'https://world.openfoodfacts.org/api/v0/product',
-} as const
+} as const;
 
 // Meal types
 export const MEAL_TYPES = {
@@ -14,7 +14,7 @@ export const MEAL_TYPES = {
   LUNCH: 'lunch',
   DINNER: 'dinner',
   SNACK: 'snack',
-} as const
+} as const;
 
 // Pantry categories
 export const PANTRY_CATEGORIES = {
@@ -28,7 +28,7 @@ export const PANTRY_CATEGORIES = {
   FROZEN: 'frozen',
   CANNED: 'canned',
   OTHER: 'other',
-} as const
+} as const;
 
 // Cooking equipment
 export const COOKING_EQUIPMENT = {
@@ -40,7 +40,7 @@ export const COOKING_EQUIPMENT = {
   SLOW_COOKER: 'slow_cooker',
   AIR_FRYER: 'air_fryer',
   INSTANT_POT: 'instant_pot',
-} as const
+} as const;
 
 // Time budgets (in minutes)
 export const TIME_BUDGETS = {
@@ -48,7 +48,7 @@ export const TIME_BUDGETS = {
   MEDIUM: 30,
   LONG: 45,
   EXTENDED: 60,
-} as const
+} as const;
 
 // Gamification constants
 export const XP_VALUES = {
@@ -56,7 +56,7 @@ export const XP_VALUES = {
   PLAN_MEAL: 25,
   SHARE_RECIPE: 30,
   COMPLETE_STREAK: 100,
-} as const
+} as const;
 
 export const BADGES = {
   FIRST_MEAL: {
@@ -77,20 +77,20 @@ export const BADGES = {
     description: 'Shared 5 recipes',
     icon: '👥',
   },
-} as const
+} as const;
 
 // UI constants
 export const ANIMATION_DURATIONS = {
   FAST: 150,
   NORMAL: 300,
   SLOW: 500,
-} as const
+} as const;
 
 export const BREAKPOINTS = {
   MOBILE: 640,
   TABLET: 768,
   DESKTOP: 1024,
-} as const
+} as const;
 
 // Error messages
 export const ERROR_MESSAGES = {
@@ -98,7 +98,7 @@ export const ERROR_MESSAGES = {
   AUTH_ERROR: 'Authentication failed. Please try again.',
   GENERIC_ERROR: 'Something went wrong. Please try again.',
   RATE_LIMIT: 'Too many requests. Please wait a moment.',
-} as const
+} as const;
 
 // Success messages
 export const SUCCESS_MESSAGES = {
@@ -106,4 +106,4 @@ export const SUCCESS_MESSAGES = {
   RECIPE_ADDED: 'Recipe added to your collection!',
   GROCERY_UPDATED: 'Grocery list updated!',
   PROFILE_UPDATED: 'Profile updated successfully!',
-} as const 
+} as const;
