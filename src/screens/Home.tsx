@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { Camera, Calendar, ShoppingCart, User, Plus } from 'lucide-react'
+import { Camera, Calendar } from 'lucide-react'
 
 const Home: React.FC = () => {
   return (
