@@ -24,7 +24,6 @@ const MealPlanner: React.FC = () => {
   >('breakfast');
   const [meals, setMeals] = useState<Meal[]>([]);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
-  const [loading, setLoading] = useState(false);
   const [newMeal, setNewMeal] = useState({
     recipe_id: '',
     notes: '',
@@ -40,7 +39,7 @@ const MealPlanner: React.FC = () => {
   const loadMealsAndRecipes = async () => {
     if (!user) return;
 
-    setLoading(true);
+    // setLoading(true);
     try {
       const dateString = selectedDate.toISOString().split('T')[0];
       const [mealsData, recipesData] = await Promise.all([
@@ -54,7 +53,7 @@ const MealPlanner: React.FC = () => {
       console.error('Error loading meals and recipes:', error);
       toast.error('Failed to load meals');
     } finally {
-      setLoading(false);
+      // setLoading(false);
     }
   };
 

@@ -7,6 +7,7 @@ interface ImportMetaEnv {
   readonly VITE_MEALDB_API_KEY?: string;
   readonly VITE_HUGGINGFACE_TOKEN?: string;
   readonly VITE_ANALYTICS_ID?: string;
+  readonly VITE_BACKEND_URL: string;
   readonly DEV: boolean;
   readonly PROD: boolean;
 }

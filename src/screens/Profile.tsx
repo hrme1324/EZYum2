@@ -38,45 +38,6 @@ const Profile: React.FC = () => {
     timeSaved: 12.5,
   };
 
-  const achievements = [
-    {
-      id: '1',
-      name: 'First Meal',
-      description: 'Planned your first meal',
-      icon: '🍽️',
-      earned: true,
-    },
-    {
-      id: '2',
-      name: 'Week Warrior',
-      description: '7-day cooking streak',
-      icon: '🔥',
-      earned: true,
-    },
-    {
-      id: '3',
-      name: 'Pantry Master',
-      description: 'Added 20 items to pantry',
-      icon: '📦',
-      earned: true,
-    },
-    {
-      id: '4',
-      name: 'Recipe Collector',
-      description: 'Saved 10 recipes',
-      icon: '📖',
-      earned: false,
-    },
-    {
-      id: '5',
-      name: 'Time Saver',
-      description: 'Saved 10 hours planning',
-      icon: '⏰',
-      earned: true,
-    },
-    { id: '6', name: 'Social Chef', description: 'Shared 5 meals', icon: '👥', earned: false },
-  ];
-
   // Load user data
   useEffect(() => {
     if (user) {
@@ -94,7 +55,14 @@ const Profile: React.FC = () => {
         SettingsService.getUserAppliances(user.id),
       ]);
 
-      setSettings(userSettings);
+      // If no settings exist, create default settings
+      if (!userSettings) {
+        const defaultSettings = await SettingsService.initializeDefaultSettings(user.id);
+        setSettings(defaultSettings);
+      } else {
+        setSettings(userSettings);
+      }
+
       setAllergens(userAllergens);
       setAppliances(userAppliances);
     } catch (error) {
@@ -103,11 +71,20 @@ const Profile: React.FC = () => {
   };
 
   const updateSetting = async (key: keyof UserSettings, value: any) => {
-    if (!user || !settings) return;
+    if (!user) return;
 
     try {
+      // If settings don't exist yet, create them with the new value
+      const currentSettings = settings || {
+        time_budget: 30,
+        notifications_enabled: true,
+        dark_mode: false,
+        meal_reminders: true,
+        grocery_reminders: true,
+      };
+
       const updatedSettings = await SettingsService.upsertUserSettings(user.id, {
-        ...settings,
+        ...currentSettings,
         [key]: value,
       });
 
@@ -312,15 +289,20 @@ const Profile: React.FC = () => {
                   <p className="text-sm text-soft-taupe">{settings?.time_budget || 30} minutes per meal</p>
                 </div>
               </div>
-              <input
-                type="range"
-                min="15"
-                max="60"
-                step="5"
-                value={settings?.time_budget || 30}
-                onChange={(e) => updateSetting('time_budget', Number(e.target.value))}
-                className="w-20 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-              />
+              <div className="flex items-center gap-3">
+                <input
+                  type="range"
+                  min="15"
+                  max="60"
+                  step="5"
+                  value={settings?.time_budget || 30}
+                  onChange={(e) => updateSetting('time_budget', Number(e.target.value))}
+                  className="slider"
+                />
+                <span className="text-sm font-medium text-rich-charcoal min-w-[3rem] text-right">
+                  {settings?.time_budget || 30}m
+                </span>
+              </div>
             </div>
           </div>
         </motion.div>

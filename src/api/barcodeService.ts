@@ -45,23 +45,27 @@ export class BarcodeService {
     try {
       // Check cache first
       if (this.cache.has(barcode)) {
+        console.log('Returning cached product:', barcode);
         return this.cache.get(barcode)!;
+      }
+
+      // Check fallback products first (for testing)
+      const fallbackProduct = FALLBACK_PRODUCTS[barcode];
+      if (fallbackProduct) {
+        console.log('Found fallback product:', fallbackProduct.name);
+        this.cache.set(barcode, fallbackProduct);
+        return fallbackProduct;
       }
 
       // Try Open Food Facts API
       const product = await this.fetchFromOpenFoodFacts(barcode);
       if (product) {
+        console.log('Found product from API:', product.name);
         this.cache.set(barcode, product);
         return product;
       }
 
-      // Try fallback products
-      const fallbackProduct = FALLBACK_PRODUCTS[barcode];
-      if (fallbackProduct) {
-        this.cache.set(barcode, fallbackProduct);
-        return fallbackProduct;
-      }
-
+      console.log('No product found for barcode:', barcode);
       return null;
     } catch (error) {
       console.error('Barcode scanning error:', error);
@@ -69,6 +73,7 @@ export class BarcodeService {
       // Return fallback product if available
       const fallbackProduct = FALLBACK_PRODUCTS[barcode];
       if (fallbackProduct) {
+        console.log('Returning fallback product after error:', fallbackProduct.name);
         return fallbackProduct;
       }
 

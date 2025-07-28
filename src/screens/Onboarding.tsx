@@ -142,7 +142,7 @@ const Onboarding: React.FC = () => {
                 step="5"
                 value={timeBudget}
                 onChange={(e) => setTimeBudget(Number(e.target.value))}
-                className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                className="w-full slider"
               />
               <div className="flex justify-between text-xs text-soft-taupe mt-2">
                 <span>15 min</span>

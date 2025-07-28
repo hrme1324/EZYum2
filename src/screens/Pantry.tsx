@@ -1,17 +1,24 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { Camera, Clock, Edit3, Plus, QrCode, Search, ShoppingBag, Trash2 } from 'lucide-react';
-import React, { useState } from 'react';
+import { Camera, Clock, Edit3, Plus, QrCode, Search, ShoppingBag, Trash2, X } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { BarcodeService } from '../api/barcodeService';
+import { PantryService } from '../api/pantryService';
+import { useAuthStore } from '../state/authStore';
 import { PantryItem } from '../types';
 
 const Pantry: React.FC = () => {
+  const { user } = useAuthStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showBarcodeModal, setShowBarcodeModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [barcodeInput, setBarcodeInput] = useState('');
   const [isScanning, setIsScanning] = useState(false);
+  const [pantryItems, setPantryItems] = useState<PantryItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editingItem, setEditingItem] = useState<PantryItem | null>(null);
   const [newItem, setNewItem] = useState({
     name: '',
     category: 'other',
@@ -19,59 +26,8 @@ const Pantry: React.FC = () => {
     expiration: '',
   });
 
-  // Mock data - replace with real Supabase data
-  const pantryItems: PantryItem[] = [
-    {
-      id: '1',
-      user_id: 'user1',
-      name: 'Chicken Breast',
-      category: 'protein',
-      quantity: 2,
-      expiration: '2024-01-15',
-      source: 'manual',
-      created_at: '2024-01-10',
-    },
-    {
-      id: '2',
-      user_id: 'user1',
-      name: 'Brown Rice',
-      category: 'grains',
-      quantity: 1,
-      expiration: '2024-06-15',
-      source: 'manual',
-      created_at: '2024-01-10',
-    },
-    {
-      id: '3',
-      user_id: 'user1',
-      name: 'Broccoli',
-      category: 'vegetables',
-      quantity: 3,
-      expiration: '2024-01-12',
-      source: 'manual',
-      created_at: '2024-01-10',
-    },
-    {
-      id: '4',
-      user_id: 'user1',
-      name: 'Eggs',
-      category: 'protein',
-      quantity: 12,
-      expiration: '2024-01-20',
-      source: 'manual',
-      created_at: '2024-01-10',
-    },
-    {
-      id: '5',
-      user_id: 'user1',
-      name: 'Olive Oil',
-      category: 'condiments',
-      quantity: 1,
-      expiration: '2024-12-15',
-      source: 'manual',
-      created_at: '2024-01-10',
-    },
-  ];
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
   const categories = [
     { id: 'all', name: 'All', emoji: '📦' },
@@ -81,7 +37,30 @@ const Pantry: React.FC = () => {
     { id: 'fruits', name: 'Fruits', emoji: '🍎' },
     { id: 'dairy', name: 'Dairy', emoji: '🥛' },
     { id: 'condiments', name: 'Condiments', emoji: '🧂' },
+    { id: 'other', name: 'Other', emoji: '📦' },
   ];
+
+  // Load pantry items on component mount
+  useEffect(() => {
+    if (user) {
+      loadPantryItems();
+    }
+  }, [user]);
+
+  const loadPantryItems = async () => {
+    if (!user) return;
+
+    setLoading(true);
+    try {
+      const items = await PantryService.getPantryItems(user.id);
+      setPantryItems(items);
+    } catch (error) {
+      console.error('Error loading pantry items:', error);
+      toast.error('Failed to load pantry items');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredItems = pantryItems.filter((item) => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -137,18 +116,132 @@ const Pantry: React.FC = () => {
     }
   };
 
-  const addItem = () => {
-    if (!newItem.name.trim()) {
+  const addItem = async () => {
+    if (!user || !newItem.name.trim()) {
       toast.error('Please enter an item name');
       return;
     }
 
-    // Add item logic here
-    console.log('Adding item:', newItem);
-    setShowAddModal(false);
-    setNewItem({ name: '', category: 'other', quantity: 1, expiration: '' });
-    toast.success('Item added to pantry');
+    try {
+      const addedItem = await PantryService.addPantryItem(user.id, {
+        name: newItem.name.trim(),
+        category: newItem.category,
+        quantity: newItem.quantity,
+        expiration: newItem.expiration || undefined,
+        source: 'manual',
+      });
+
+      if (addedItem) {
+        setPantryItems(prev => [addedItem, ...prev]);
+        setShowAddModal(false);
+        setNewItem({ name: '', category: 'other', quantity: 1, expiration: '' });
+        toast.success('Item added to pantry');
+      } else {
+        toast.error('Failed to add item');
+      }
+    } catch (error) {
+      console.error('Error adding item:', error);
+      toast.error('Failed to add item');
+    }
   };
+
+  const editItem = (item: PantryItem) => {
+    setEditingItem(item);
+    setNewItem({
+      name: item.name,
+      category: item.category,
+      quantity: item.quantity,
+      expiration: item.expiration || '',
+    });
+    setShowEditModal(true);
+  };
+
+  const updateItem = async () => {
+    if (!user || !editingItem || !newItem.name.trim()) {
+      toast.error('Please enter an item name');
+      return;
+    }
+
+    try {
+      const updatedItem = await PantryService.updatePantryItem(user.id, editingItem.id, {
+        name: newItem.name.trim(),
+        category: newItem.category,
+        quantity: newItem.quantity,
+                 expiration: newItem.expiration || undefined,
+      });
+
+      if (updatedItem) {
+        setPantryItems(prev => prev.map(item =>
+          item.id === editingItem.id ? updatedItem : item
+        ));
+        setShowEditModal(false);
+        setEditingItem(null);
+        setNewItem({ name: '', category: 'other', quantity: 1, expiration: '' });
+        toast.success('Item updated');
+      } else {
+        toast.error('Failed to update item');
+      }
+    } catch (error) {
+      console.error('Error updating item:', error);
+      toast.error('Failed to update item');
+    }
+  };
+
+  const deleteItem = async (itemId: string) => {
+    if (!user) return;
+
+    try {
+      const success = await PantryService.deletePantryItem(user.id, itemId);
+      if (success) {
+        setPantryItems(prev => prev.filter(item => item.id !== itemId));
+        toast.success('Item removed from pantry');
+      } else {
+        toast.error('Failed to remove item');
+      }
+    } catch (error) {
+      console.error('Error deleting item:', error);
+      toast.error('Failed to remove item');
+    }
+  };
+
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' }
+      });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    } catch (error) {
+      console.error('Camera error:', error);
+      toast.error('Camera access denied');
+    }
+  };
+
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      stopCamera();
+    };
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-off-white p-4 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-coral-blush mx-auto mb-4"></div>
+          <p className="text-soft-taupe">Loading pantry...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-off-white p-4">
@@ -245,10 +338,16 @@ const Pantry: React.FC = () => {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <button className="p-2 text-soft-taupe hover:text-rich-charcoal transition-colors">
+                    <button
+                      onClick={() => editItem(item)}
+                      className="p-2 text-soft-taupe hover:text-rich-charcoal transition-colors"
+                    >
                       <Edit3 className="w-4 h-4" />
                     </button>
-                    <button className="p-2 text-red-500 hover:text-red-700 transition-colors">
+                    <button
+                      onClick={() => deleteItem(item.id)}
+                      className="p-2 text-red-500 hover:text-red-700 transition-colors"
+                    >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
@@ -284,7 +383,12 @@ const Pantry: React.FC = () => {
               className="bg-white rounded-xl p-6 w-full max-w-md"
               onClick={(e) => e.stopPropagation()}
             >
-              <h2 className="text-xl font-lora text-rich-charcoal mb-4">Add to Pantry</h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-lora text-rich-charcoal">Add to Pantry</h2>
+                <button onClick={() => setShowAddModal(false)} className="text-soft-taupe hover:text-rich-charcoal">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
 
               <div className="space-y-4">
                 <div>
@@ -349,15 +453,15 @@ const Pantry: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Barcode Scanner Modal */}
+      {/* Edit Item Modal */}
       <AnimatePresence>
-        {showBarcodeModal && (
+        {showEditModal && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
-            onClick={() => setShowBarcodeModal(false)}
+            onClick={() => setShowEditModal(false)}
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
@@ -366,7 +470,108 @@ const Pantry: React.FC = () => {
               className="bg-white rounded-xl p-6 w-full max-w-md"
               onClick={(e) => e.stopPropagation()}
             >
-              <h2 className="text-xl font-lora text-rich-charcoal mb-4">Scan Barcode</h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-lora text-rich-charcoal">Edit Item</h2>
+                <button onClick={() => setShowEditModal(false)} className="text-soft-taupe hover:text-rich-charcoal">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-rich-charcoal mb-2">Item Name</label>
+                  <input
+                    type="text"
+                    value={newItem.name}
+                    onChange={(e) => setNewItem(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="e.g., Chicken Breast"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:border-coral-blush focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-rich-charcoal mb-2">Category</label>
+                  <select
+                    value={newItem.category}
+                    onChange={(e) => setNewItem(prev => ({ ...prev, category: e.target.value }))}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:border-coral-blush focus:outline-none"
+                  >
+                    {categories.filter(c => c.id !== 'all').map(category => (
+                      <option key={category.id} value={category.id}>
+                        {category.emoji} {category.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-rich-charcoal mb-2">Quantity</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={newItem.quantity}
+                      onChange={(e) => setNewItem(prev => ({ ...prev, quantity: Number(e.target.value) }))}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:border-coral-blush focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-rich-charcoal mb-2">Expiration</label>
+                    <input
+                      type="date"
+                      value={newItem.expiration}
+                      onChange={(e) => setNewItem(prev => ({ ...prev, expiration: e.target.value }))}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:border-coral-blush focus:outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button onClick={() => setShowEditModal(false)} className="flex-1 btn-secondary">
+                  Cancel
+                </button>
+                <button onClick={updateItem} className="flex-1 btn-primary">
+                  Update Item
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Barcode Scanner Modal */}
+      <AnimatePresence>
+        {showBarcodeModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+            onClick={() => {
+              setShowBarcodeModal(false);
+              stopCamera();
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-xl p-6 w-full max-w-md"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-lora text-rich-charcoal">Scan Barcode</h2>
+                <button
+                  onClick={() => {
+                    setShowBarcodeModal(false);
+                    stopCamera();
+                  }}
+                  className="text-soft-taupe hover:text-rich-charcoal"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
 
               <div className="space-y-4">
                 <div>
@@ -381,10 +586,23 @@ const Pantry: React.FC = () => {
                 </div>
 
                 <div className="text-center">
-                  <button className="p-4 bg-sage-leaf text-white rounded-lg hover:bg-opacity-90 transition-colors">
+                  <button
+                    onClick={startCamera}
+                    className="p-4 bg-sage-leaf text-white rounded-lg hover:bg-opacity-90 transition-colors"
+                  >
                     <Camera className="w-6 h-6" />
                   </button>
                   <p className="text-sm text-soft-taupe mt-2">Use camera to scan</p>
+
+                  {/* Camera video element */}
+                  <div className="mt-4">
+                    <video
+                      ref={videoRef}
+                      autoPlay
+                      playsInline
+                      className="w-full h-32 bg-gray-100 rounded-lg object-cover"
+                    />
+                  </div>
                 </div>
 
                 <div className="text-xs text-soft-taupe bg-gray-50 p-3 rounded-lg">
@@ -398,7 +616,13 @@ const Pantry: React.FC = () => {
               </div>
 
               <div className="flex gap-3 mt-6">
-                <button onClick={() => setShowBarcodeModal(false)} className="flex-1 btn-secondary">
+                <button
+                  onClick={() => {
+                    setShowBarcodeModal(false);
+                    stopCamera();
+                  }}
+                  className="flex-1 btn-secondary"
+                >
                   Cancel
                 </button>
                 <button

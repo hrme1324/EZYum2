@@ -11,11 +11,23 @@ export class SettingsService {
         .from('user_settings')
         .select('*')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle(); // Use maybeSingle instead of single to handle no rows
 
       if (error) {
         console.error('Error fetching user settings:', error);
         return null;
+      }
+
+      // If no settings exist, create default settings
+      if (!data) {
+        const defaultSettings = await this.upsertUserSettings(userId, {
+          time_budget: 30,
+          notifications_enabled: true,
+          dark_mode: false,
+          meal_reminders: true,
+          grocery_reminders: true,
+        });
+        return defaultSettings;
       }
 
       return data;
@@ -42,6 +54,38 @@ export class SettingsService {
 
       if (error) {
         console.error('Error upserting user settings:', error);
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Settings service error:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Initialize default settings for a user
+   */
+  static async initializeDefaultSettings(userId: string): Promise<UserSettings | null> {
+    try {
+      const defaultSettings = {
+        user_id: userId,
+        time_budget: 30,
+        notifications_enabled: true,
+        dark_mode: false,
+        meal_reminders: true,
+        grocery_reminders: true,
+      };
+
+      const { data, error } = await supabase
+        .from('user_settings')
+        .insert(defaultSettings)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error initializing default settings:', error);
         return null;
       }
 
