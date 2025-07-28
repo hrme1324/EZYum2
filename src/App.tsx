@@ -6,6 +6,7 @@ import Pantry from './screens/Pantry'
 import MealPlanner from './screens/MealPlanner'
 import GroceryList from './screens/GroceryList'
 import Profile from './screens/Profile'
+import AuthCallback from './screens/AuthCallback'
 import LoadingSpinner from './components/LoadingSpinner'
 
 function App() {
@@ -31,6 +32,7 @@ function App() {
         <Route path="/meal-planner" element={<MealPlanner />} />
         <Route path="/grocery-list" element={<GroceryList />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
       </Routes>
     </div>
   )
