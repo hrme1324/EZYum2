@@ -1,12 +1,14 @@
+import { BookOpen, Calendar, Home, ShoppingBag, ShoppingCart, User, Utensils } from 'lucide-react';
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, ShoppingBag, Calendar, ShoppingCart, User } from 'lucide-react';
 
 const Navigation: React.FC = () => {
   const location = useLocation();
 
   const navItems = [
     { path: '/', icon: Home, label: 'Home', emoji: '🏠' },
+    { path: '/recipes', icon: BookOpen, label: 'Recipes', emoji: '📖' },
+    { path: '/my-recipes', icon: Utensils, label: 'My Recipes', emoji: '👨‍🍳' },
     { path: '/pantry', icon: ShoppingBag, label: 'Pantry', emoji: '📦' },
     { path: '/meal-planner', icon: Calendar, label: 'Plan', emoji: '📅' },
     { path: '/grocery-list', icon: ShoppingCart, label: 'Grocery', emoji: '🛒' },

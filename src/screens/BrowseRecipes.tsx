@@ -1,0 +1,245 @@
+import { motion } from 'framer-motion';
+import { ChefHat, Search } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
+import { RecipeService as MealDBService } from '../api/aiService';
+import { RecipeService as UserRecipeService } from '../api/recipeService';
+import RecipeCard, { Recipe } from '../components/RecipeCard';
+
+const BrowseRecipes: React.FC = () => {
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+
+  const categories = [
+    { id: 'all', name: 'All Recipes', emoji: '🍽️' },
+    { id: 'beef', name: 'Beef', emoji: '🥩' },
+    { id: 'chicken', name: 'Chicken', emoji: '🍗' },
+    { id: 'seafood', name: 'Seafood', emoji: '🐟' },
+    { id: 'vegetarian', name: 'Vegetarian', emoji: '🥬' },
+    { id: 'dessert', name: 'Dessert', emoji: '🍰' },
+    { id: 'breakfast', name: 'Breakfast', emoji: '🥞' },
+  ];
+
+  useEffect(() => {
+    loadRandomRecipes();
+  }, []);
+
+  const loadRandomRecipes = async () => {
+    setLoading(true);
+    try {
+      const randomRecipes = await Promise.all([
+        MealDBService.getRandomRecipe(),
+        MealDBService.getRandomRecipe(),
+        MealDBService.getRandomRecipe(),
+        MealDBService.getRandomRecipe(),
+        MealDBService.getRandomRecipe(),
+        MealDBService.getRandomRecipe(),
+      ]);
+
+      const validRecipes = randomRecipes
+        .filter(recipe => recipe !== null)
+        .map((recipe: any) => ({
+          id: recipe.id,
+          name: recipe.name,
+          category: recipe.category,
+          area: recipe.area,
+          instructions: Array.isArray(recipe.instructions) ? recipe.instructions.join('\n') : recipe.instructions,
+          image: recipe.image,
+          tags: recipe.tags,
+          ingredients: recipe.ingredients,
+          videoUrl: recipe.videoUrl,
+          websiteUrl: recipe.websiteUrl,
+          cookingTime: recipe.cookingTime,
+          difficulty: recipe.difficulty,
+        }));
+      setRecipes(validRecipes);
+    } catch (error) {
+      console.error('Error loading random recipes:', error);
+      toast.error('Failed to load recipes');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const searchRecipes = async () => {
+    if (!searchQuery.trim()) {
+      loadRandomRecipes();
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const searchResults = await MealDBService.searchRecipes(searchQuery);
+      // Convert the search results to the RecipeCard Recipe format
+      const convertedRecipes: Recipe[] = (searchResults || []).map((recipe: any) => ({
+        id: recipe.id,
+        name: recipe.name,
+        category: recipe.category,
+        area: recipe.area,
+        instructions: Array.isArray(recipe.instructions) ? recipe.instructions.join('\n') : recipe.instructions,
+        image: recipe.image,
+        tags: recipe.tags,
+        ingredients: recipe.ingredients,
+        videoUrl: recipe.videoUrl,
+        websiteUrl: recipe.websiteUrl,
+        cookingTime: recipe.cookingTime,
+        difficulty: recipe.difficulty,
+      }));
+      setRecipes(convertedRecipes);
+      if (convertedRecipes.length === 0) {
+        toast.error('No recipes found for your search');
+      }
+    } catch (error) {
+      console.error('Error searching recipes:', error);
+      toast.error('Failed to search recipes');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    searchRecipes();
+  };
+
+  const handleCategoryFilter = (category: string) => {
+    setSelectedCategory(category);
+    if (category === 'all') {
+      loadRandomRecipes();
+    } else {
+      searchRecipes();
+    }
+  };
+
+  const handleSaveRecipe = async (recipe: Recipe) => {
+    try {
+      const success = await UserRecipeService.saveMealDBRecipe(recipe, recipe.id);
+      if (success) {
+        toast.success('Recipe saved to your collection!');
+      } else {
+        toast.error('Failed to save recipe');
+      }
+    } catch (error) {
+      console.error('Error saving recipe:', error);
+      toast.error('Failed to save recipe');
+    }
+  };
+
+  const filteredRecipes = selectedCategory === 'all'
+    ? recipes
+    : recipes.filter(recipe =>
+        recipe.category?.toLowerCase().includes(selectedCategory.toLowerCase()) ||
+        recipe.name.toLowerCase().includes(selectedCategory.toLowerCase())
+      );
+
+  return (
+    <div className="min-h-screen bg-off-white p-4">
+      <div className="max-w-md mx-auto">
+        {/* Header */}
+        <header className="mb-6">
+          <h1 className="text-3xl font-lora text-rich-charcoal mb-2">Browse Recipes</h1>
+          <p className="text-soft-taupe">Discover delicious recipes from around the world</p>
+        </header>
+
+        {/* Search Bar */}
+        <div className="mb-6">
+          <form onSubmit={handleSearch} className="relative">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search for recipes..."
+              className="w-full p-4 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-coral-blush focus:border-transparent"
+            />
+            <button
+              type="submit"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-coral-blush hover:text-opacity-80"
+            >
+              <Search className="w-5 h-5" />
+            </button>
+          </form>
+        </div>
+
+        {/* Category Filters */}
+        <div className="mb-6">
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            {categories.map((category) => (
+              <button
+                key={category.id}
+                onClick={() => handleCategoryFilter(category.id)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
+                  selectedCategory === category.id
+                    ? 'bg-coral-blush text-white'
+                    : 'bg-white text-rich-charcoal border border-gray-200'
+                }`}
+              >
+                <span>{category.emoji}</span>
+                <span className="text-sm font-medium">{category.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Loading State */}
+        {loading && (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-coral-blush"></div>
+          </div>
+        )}
+
+        {/* Recipes Grid */}
+        {!loading && (
+          <div className="space-y-4">
+            {filteredRecipes.length === 0 ? (
+              <div className="text-center py-12">
+                <ChefHat className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-rich-charcoal mb-2">No recipes found</h3>
+                <p className="text-soft-taupe">Try adjusting your search or browse our random recipes</p>
+                <button
+                  onClick={loadRandomRecipes}
+                  className="mt-4 bg-coral-blush text-white px-6 py-2 rounded-lg hover:bg-opacity-90 transition-colors"
+                >
+                  Load Random Recipes
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-medium text-rich-charcoal">
+                    {filteredRecipes.length} Recipes
+                  </h2>
+                  <button
+                    onClick={loadRandomRecipes}
+                    className="text-sm text-coral-blush hover:text-opacity-80"
+                  >
+                    Refresh
+                  </button>
+                </div>
+                <div className="space-y-4">
+                  {filteredRecipes.map((recipe, index) => (
+                    <motion.div
+                      key={recipe.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                    >
+                      <RecipeCard
+                        recipe={recipe}
+                        onSave={handleSaveRecipe}
+                        showActions={true}
+                      />
+                    </motion.div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default BrowseRecipes;

@@ -1,63 +1,46 @@
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || '/api';
+import { Recipe } from '../components/RecipeCard';
 
-export interface RecipeSuggestion {
-  name: string;
-  description: string;
-  cookingTime: string;
-  difficulty: 'Easy' | 'Medium' | 'Hard';
-  ingredients: string[];
-}
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001/api';
 
-export interface FoodCategory {
-  item: string;
-  category: string;
-  confidence: number;
-}
-
-export class AIService {
-  static async getRecipeSuggestions(ingredients: string[], preferences: string = '', dietary: string = ''): Promise<RecipeSuggestion[]> {
-    try {
-      const response = await fetch(`${BACKEND_URL}/ai/recipe-suggestions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ ingredients, preferences, dietary }),
+// Helper function to extract ingredients from MealDB response
+const extractIngredients = (meal: any): Array<{ name: string; measure: string }> => {
+  const ingredients = [];
+  for (let i = 1; i <= 20; i++) {
+    const ingredient = meal[`strIngredient${i}`];
+    const measure = meal[`strMeasure${i}`];
+    if (ingredient && ingredient.trim()) {
+      ingredients.push({
+        name: ingredient.trim(),
+        measure: measure ? measure.trim() : ''
       });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Error getting recipe suggestions:', error);
-      return [];
     }
   }
+  return ingredients;
+};
 
-  static async categorizeFoodItems(foodItems: string[]): Promise<FoodCategory[]> {
-    try {
-      const response = await fetch(`${BACKEND_URL}/ai/food-categorization`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ foodItems }),
-      });
+// Helper function to format MealDB meal to Recipe format
+const formatMealDBMeal = (meal: any): Recipe => {
+  return {
+    id: meal.idMeal,
+    name: meal.strMeal,
+    category: meal.strCategory,
+    area: meal.strArea,
+    instructions: meal.strInstructions,
+    image: meal.strMealThumb,
+    tags: meal.strTags ? meal.strTags.split(',').map((tag: string) => tag.trim()) : [],
+    videoUrl: meal.strYoutube || null,
+    websiteUrl: meal.strSource || null,
+    ingredients: extractIngredients(meal),
+    cookingTime: '30 min', // Default since MealDB doesn't provide this
+    difficulty: 'Medium' as 'Easy' | 'Medium' | 'Hard', // Default since MealDB doesn't provide this
+  };
+};
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Error categorizing food items:', error);
-      return [];
-    }
-  }
-
-  static async searchRecipes(query: string): Promise<any> {
+export class RecipeService {
+  /**
+   * Search for recipes using MealDB
+   */
+  static async searchRecipes(query: string): Promise<Recipe[]> {
     try {
       const response = await fetch(`${BACKEND_URL}/recipes/search?query=${encodeURIComponent(query)}`);
 
@@ -65,14 +48,28 @@ export class AIService {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      return await response.json();
+      const data = await response.json();
+
+      // Handle both MealDB format and our custom format
+      if (data.meals) {
+        // MealDB format
+        return data.meals.map(formatMealDBMeal);
+      } else if (Array.isArray(data)) {
+        // Our custom format
+        return data;
+      } else {
+        return [];
+      }
     } catch (error) {
       console.error('Error searching recipes:', error);
       return [];
     }
   }
 
-  static async getRandomRecipe(): Promise<any> {
+  /**
+   * Get a random recipe from MealDB
+   */
+  static async getRandomRecipe(): Promise<Recipe | null> {
     try {
       const response = await fetch(`${BACKEND_URL}/recipes/random`);
 
@@ -80,14 +77,28 @@ export class AIService {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      return await response.json();
+      const data = await response.json();
+
+      // Handle both MealDB format and our custom format
+      if (data.meals && data.meals[0]) {
+        // MealDB format
+        return formatMealDBMeal(data.meals[0]);
+      } else if (data.id) {
+        // Our custom format
+        return data;
+      } else {
+        return null;
+      }
     } catch (error) {
       console.error('Error getting random recipe:', error);
       return null;
     }
   }
 
-  static async checkBackendHealth(): Promise<boolean> {
+  /**
+   * Health check for the backend
+   */
+  static async healthCheck(): Promise<boolean> {
     try {
       const response = await fetch(`${BACKEND_URL}/health`);
       return response.ok;
@@ -97,3 +108,6 @@ export class AIService {
     }
   }
 }
+
+// Keep the old name for backward compatibility
+export const AIService = RecipeService;

@@ -107,3 +107,123 @@ export const SUCCESS_MESSAGES = {
   GROCERY_UPDATED: 'Grocery list updated!',
   PROFILE_UPDATED: 'Profile updated successfully!',
 } as const;
+
+// Development flags
+export const IS_OFFLINE_MODE = import.meta.env.VITE_OFFLINE_MODE === 'true';
+
+// Mock data for offline development
+export const MOCK_RECIPES = [
+  {
+    id: 'mock-1',
+    name: 'Chicken Pasta',
+    category: 'Italian',
+    area: 'Italy',
+    instructions: 'Cook pasta, add chicken, serve hot.',
+    image: '',
+    tags: ['pasta', 'chicken'],
+    ingredients: [{ name: 'Pasta', measure: '200g' }, { name: 'Chicken', measure: '150g' }],
+    videoUrl: '',
+    websiteUrl: '',
+    cookingTime: '30 min',
+    difficulty: 'Easy' as const,
+    source_type: 'discovery',
+    mealdb_id: 'mock-1',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 'mock-2',
+    name: 'Greek Salad',
+    category: 'Mediterranean',
+    area: 'Greece',
+    instructions: 'Mix vegetables, add feta, drizzle with olive oil.',
+    image: '',
+    tags: ['salad', 'vegetarian'],
+    ingredients: [{ name: 'Cucumber', measure: '1' }, { name: 'Tomatoes', measure: '2' }],
+    videoUrl: '',
+    websiteUrl: '',
+    cookingTime: '10 min',
+    difficulty: 'Easy' as const,
+    source_type: 'discovery',
+    mealdb_id: 'mock-2',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 'mock-3',
+    name: 'Beef Tacos',
+    category: 'Mexican',
+    area: 'Mexico',
+    instructions: 'Cook beef with spices, serve in tortillas with toppings.',
+    image: '',
+    tags: ['tacos', 'beef', 'mexican'],
+    ingredients: [{ name: 'Ground Beef', measure: '300g' }, { name: 'Tortillas', measure: '6' }],
+    videoUrl: '',
+    websiteUrl: '',
+    cookingTime: '25 min',
+    difficulty: 'Medium' as const,
+    source_type: 'discovery',
+    mealdb_id: 'mock-3',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 'mock-4',
+    name: 'Chocolate Cake',
+    category: 'Dessert',
+    area: 'International',
+    instructions: 'Mix ingredients, bake at 350°F for 30 minutes.',
+    image: '',
+    tags: ['dessert', 'chocolate', 'cake'],
+    ingredients: [{ name: 'Flour', measure: '2 cups' }, { name: 'Cocoa', measure: '1/2 cup' }],
+    videoUrl: '',
+    websiteUrl: '',
+    cookingTime: '45 min',
+    difficulty: 'Medium' as const,
+    source_type: 'discovery',
+    mealdb_id: 'mock-4',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 'mock-5',
+    name: 'Vegetable Stir Fry',
+    category: 'Asian',
+    area: 'China',
+    instructions: 'Stir fry vegetables with soy sauce and ginger.',
+    image: '',
+    tags: ['vegetarian', 'asian', 'stir-fry'],
+    ingredients: [{ name: 'Broccoli', measure: '2 cups' }, { name: 'Soy Sauce', measure: '2 tbsp' }],
+    videoUrl: '',
+    websiteUrl: '',
+    cookingTime: '15 min',
+    difficulty: 'Easy' as const,
+    source_type: 'discovery',
+    mealdb_id: 'mock-5',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }
+];
+
+export const MOCK_MEALS = [
+  {
+    id: 'meal-1',
+    user_id: 'mock-user',
+    date: new Date().toISOString().split('T')[0],
+    meal_type: 'breakfast' as const,
+    recipe_id: 'mock-1',
+    status: 'planned' as const,
+    notes: 'Quick breakfast option',
+    created_at: new Date().toISOString()
+  },
+  {
+    id: 'meal-2',
+    user_id: 'mock-user',
+    date: new Date().toISOString().split('T')[0],
+    meal_type: 'lunch' as const,
+    recipe_id: 'mock-2',
+    status: 'cooked' as const,
+    notes: 'Healthy lunch choice',
+    created_at: new Date().toISOString()
+  }
+];

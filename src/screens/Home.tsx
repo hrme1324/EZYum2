@@ -1,198 +1,130 @@
 import { motion } from 'framer-motion';
-import { Calendar, ChefHat, ShoppingBag, Target, TrendingUp } from 'lucide-react';
+import { BookOpen, Calendar, ChefHat, ShoppingBag, Target } from 'lucide-react';
 import React from 'react';
-import SmartSuggestions from '../components/SmartSuggestions';
+import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../state/authStore';
 
 const Home: React.FC = () => {
   const { user } = useAuthStore();
+  const navigate = useNavigate();
 
-  // Mock data
-  const todayStats = {
-    mealsPlanned: 3,
-    pantryItems: 12,
-    groceryItems: 8,
-    streak: 7,
-    xp: 1250,
-    level: 3,
+  const handleQuickAction = (path: string) => {
+    navigate(path);
   };
-
-  const todayMeals = [
-    { type: 'breakfast', name: 'Oatmeal with Berries', time: '8:00 AM', status: 'planned' },
-    { type: 'lunch', name: 'Chicken Salad', time: '12:30 PM', status: 'planned' },
-    { type: 'dinner', name: 'Pasta Carbonara', time: '7:00 PM', status: 'planned' },
-  ];
 
   const quickActions = [
-    { title: 'Add to Pantry', icon: ShoppingBag, color: 'bg-blue-500', path: '/pantry' },
-    { title: 'Plan Meals', icon: Calendar, color: 'bg-green-500', path: '/meal-planner' },
-    { title: 'Grocery List', icon: ChefHat, color: 'bg-purple-500', path: '/grocery-list' },
+    {
+      title: 'Pantry',
+      description: 'Manage your ingredients',
+      icon: <Target className="w-6 h-6" />,
+      path: '/pantry',
+      color: 'bg-coral-blush',
+    },
+    {
+      title: 'Meal Planner',
+      description: 'Plan your weekly meals',
+      icon: <Calendar className="w-6 h-6" />,
+      path: '/meal-planner',
+      color: 'bg-sage-leaf',
+    },
+    {
+      title: 'Grocery List',
+      description: 'Shopping list manager',
+      icon: <ShoppingBag className="w-6 h-6" />,
+      path: '/grocery-list',
+      color: 'bg-orange-400',
+    },
+    {
+      title: 'Browse Recipes',
+      description: 'Discover new recipes',
+      icon: <ChefHat className="w-6 h-6" />,
+      path: '/recipes',
+      color: 'bg-purple-400',
+    },
+    {
+      title: 'Recipe Hub',
+      description: 'Discover, save, and organize your favorite recipes',
+      icon: <BookOpen className="w-6 h-6" />,
+      path: '/recipes',
+      color: 'bg-indigo-400',
+    },
   ];
-
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-    return 'Good evening';
-  };
-
-  const getMealTypeEmoji = (type: string) => {
-    switch (type) {
-    case 'breakfast':
-      return '🌅';
-    case 'lunch':
-      return '☀️';
-    case 'dinner':
-      return '🌙';
-    default:
-      return '🍽️';
-    }
-  };
 
   return (
     <div className="min-h-screen bg-off-white p-4">
       <div className="max-w-md mx-auto">
         {/* Header */}
-        <header className="mb-6">
-          <div className="flex items-center justify-between mb-2">
-            <div>
-              <h1 className="text-2xl font-lora text-rich-charcoal">
-                {getGreeting()}, {user?.email?.split('@')[0] || 'Chef'}!
-              </h1>
-              <p className="text-soft-taupe">Ready to cook something amazing?</p>
-            </div>
-            <div className="w-12 h-12 bg-coral-blush rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-lg">
-                {user?.email?.charAt(0).toUpperCase() || 'C'}
-              </span>
-            </div>
-          </div>
+        <header className="mb-8">
+          <h1 className="text-3xl font-lora text-rich-charcoal mb-2">
+            Welcome back, {user?.user_metadata?.full_name || 'Chef'}! 👋
+          </h1>
+          <p className="text-soft-taupe">What would you like to cook today?</p>
         </header>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-white rounded-xl p-4 border border-gray-100"
-          >
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
-                <Target className="w-4 h-4 text-orange-600" />
-              </div>
-              <span className="text-xs text-soft-taupe">Streak</span>
-            </div>
-            <div className="text-2xl font-bold text-rich-charcoal">{todayStats.streak} days</div>
-            <div className="text-xs text-green-600">🔥 On fire!</div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="bg-white rounded-xl p-4 border border-gray-100"
-          >
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                <TrendingUp className="w-4 h-4 text-purple-600" />
-              </div>
-              <span className="text-xs text-soft-taupe">Level</span>
-            </div>
-            <div className="text-2xl font-bold text-rich-charcoal">{todayStats.level}</div>
-            <div className="text-xs text-purple-600">⭐ {todayStats.xp} XP</div>
-          </motion.div>
-        </div>
-
         {/* Quick Actions */}
-        <div className="mb-6">
-          <h2 className="text-lg font-medium text-rich-charcoal mb-3">Quick Actions</h2>
-          <div className="grid grid-cols-3 gap-3">
-            {quickActions.map((action, index) => (
-              <motion.button
-                key={action.title}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.3 + index * 0.1 }}
-                className="bg-white rounded-xl p-4 border border-gray-100 text-center hover:border-coral-blush transition-all group"
-              >
-                <div
-                  className={`w-10 h-10 ${action.color} rounded-lg flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform`}
-                >
-                  <action.icon className="w-5 h-5 text-white" />
+        <div className="grid grid-cols-2 gap-4 mb-8">
+          {quickActions.slice(0, 4).map((action, index) => (
+            <motion.button
+              key={action.title}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              className="bg-white p-4 rounded-xl border border-gray-200 text-center hover:border-coral-blush transition-colors group"
+              onClick={() => handleQuickAction(action.path)}
+            >
+              <div className={`w-12 h-12 ${action.color} rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform`}>
+                <div className="text-white">
+                  {action.icon}
                 </div>
-                <span className="text-xs font-medium text-rich-charcoal">{action.title}</span>
-              </motion.button>
-            ))}
-          </div>
+              </div>
+              <h3 className="font-medium text-rich-charcoal mb-1">{action.title}</h3>
+              <p className="text-xs text-soft-taupe">{action.description}</p>
+            </motion.button>
+          ))}
         </div>
 
-        {/* Today's Plan */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-medium text-rich-charcoal">Today's Plan</h2>
-            <span className="text-sm text-soft-taupe">{todayMeals.length} meals</span>
-          </div>
+        {/* Recipe Library Button - Full Width */}
+        <div className="mb-8">
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="w-full bg-white p-4 rounded-xl border border-gray-200 text-center hover:border-coral-blush transition-colors group"
+            onClick={() => handleQuickAction('/recipes')}
+          >
+            <div className="w-12 h-12 bg-indigo-400 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+              <div className="text-white">
+                <BookOpen className="w-6 h-6" />
+              </div>
+            </div>
+            <h3 className="font-medium text-rich-charcoal mb-1">Recipe Library</h3>
+            <p className="text-xs text-soft-taupe">Your personal recipes</p>
+          </motion.button>
+        </div>
 
+        {/* Recent Activity */}
+        <div className="bg-white rounded-xl p-6 shadow-sm">
+          <h2 className="text-lg font-medium text-rich-charcoal mb-4">Recent Activity</h2>
           <div className="space-y-3">
-            {todayMeals.map((meal, index) => (
-              <motion.div
-                key={meal.type}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4 + index * 0.1 }}
-                className="bg-white rounded-xl p-4 border border-gray-100"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-sage-leaf rounded-lg flex items-center justify-center">
-                      <span className="text-lg">{getMealTypeEmoji(meal.type)}</span>
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-rich-charcoal capitalize">{meal.type}</h3>
-                      <p className="text-sm text-soft-taupe">{meal.name}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm font-medium text-rich-charcoal">{meal.time}</div>
-                    <div className="text-xs text-green-600">Planned</div>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-
-        {/* Progress Summary */}
-        <div className="mb-6">
-          <h2 className="text-lg font-medium text-rich-charcoal mb-3">This Week</h2>
-          <div className="bg-white rounded-xl p-4 border border-gray-100">
-            <div className="grid grid-cols-3 gap-4 text-center">
-              <div>
-                <div className="text-2xl font-bold text-rich-charcoal">
-                  {todayStats.mealsPlanned}
-                </div>
-                <div className="text-xs text-soft-taupe">Meals Planned</div>
+            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+              <div className="w-8 h-8 bg-coral-blush bg-opacity-20 rounded-lg flex items-center justify-center">
+                <ChefHat className="w-4 h-4 text-coral-blush" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-rich-charcoal">
-                  {todayStats.pantryItems}
-                </div>
-                <div className="text-xs text-soft-taupe">Pantry Items</div>
+                <p className="text-sm font-medium text-rich-charcoal">Meal Planning</p>
+                <p className="text-xs text-soft-taupe">Plan your weekly meals</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+              <div className="w-8 h-8 bg-sage-leaf bg-opacity-20 rounded-lg flex items-center justify-center">
+                <ShoppingBag className="w-4 h-4 text-sage-leaf" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-rich-charcoal">
-                  {todayStats.groceryItems}
-                </div>
-                <div className="text-xs text-soft-taupe">Grocery Items</div>
+                <p className="text-sm font-medium text-rich-charcoal">Grocery Shopping</p>
+                <p className="text-xs text-soft-taupe">Manage your shopping list</p>
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Smart Suggestions */}
-        <div className="mb-6">
-          <SmartSuggestions />
         </div>
       </div>
     </div>

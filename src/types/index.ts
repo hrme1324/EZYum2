@@ -73,6 +73,7 @@ export interface Meal {
   date: string;
   meal_type: 'breakfast' | 'lunch' | 'dinner' | 'snack';
   recipe_id?: string;
+  recipe_name?: string; // For custom recipe names
   status: 'planned' | 'cooked' | 'skipped';
   notes?: string;
   created_at: string;

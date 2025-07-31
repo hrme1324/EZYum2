@@ -8,6 +8,7 @@ interface ImportMetaEnv {
   readonly VITE_HUGGINGFACE_TOKEN?: string;
   readonly VITE_ANALYTICS_ID?: string;
   readonly VITE_BACKEND_URL: string;
+  readonly VITE_OFFLINE_MODE?: string;
   readonly DEV: boolean;
   readonly PROD: boolean;
 }

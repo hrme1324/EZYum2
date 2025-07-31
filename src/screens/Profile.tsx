@@ -12,7 +12,7 @@ import {
     Utensils,
     X
 } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { SettingsService } from '../api/settingsService';
 import { useAuthStore } from '../state/authStore';
@@ -27,6 +27,7 @@ const Profile: React.FC = () => {
   const [showApplianceModal, setShowApplianceModal] = useState(false);
   const [newAllergen, setNewAllergen] = useState({ name: '', severity: 'moderate' as const });
   const [newAppliance, setNewAppliance] = useState({ name: '', type: 'cooking' });
+  const [updateTimeout, setUpdateTimeout] = useState<NodeJS.Timeout | null>(null);
 
   // Mock user stats
   const userStats = {
@@ -70,33 +71,45 @@ const Profile: React.FC = () => {
     }
   };
 
-  const updateSetting = async (key: keyof UserSettings, value: any) => {
+  const updateSetting = useCallback(async (key: keyof UserSettings, value: any) => {
     if (!user) return;
 
-    try {
-      // If settings don't exist yet, create them with the new value
-      const currentSettings = settings || {
-        time_budget: 30,
-        notifications_enabled: true,
-        dark_mode: false,
-        meal_reminders: true,
-        grocery_reminders: true,
-      };
-
-      const updatedSettings = await SettingsService.upsertUserSettings(user.id, {
-        ...currentSettings,
-        [key]: value,
-      });
-
-      if (updatedSettings) {
-        setSettings(updatedSettings);
-        toast.success('Settings updated');
-      }
-    } catch (error) {
-      console.error('Error updating settings:', error);
-      toast.error('Failed to update settings');
+    // Clear existing timeout
+    if (updateTimeout) {
+      clearTimeout(updateTimeout);
     }
-  };
+
+    // Set local state immediately for responsive UI
+    setSettings(prev => prev ? { ...prev, [key]: value } : null);
+
+    // Debounce the actual API call
+    const timeout = setTimeout(async () => {
+      try {
+        const currentSettings = settings || {
+          time_budget: 30,
+          notifications_enabled: true,
+          dark_mode: false,
+          meal_reminders: true,
+          grocery_reminders: true,
+        };
+
+        const updatedSettings = await SettingsService.upsertUserSettings(user.id, {
+          ...currentSettings,
+          [key]: value,
+        });
+
+        if (updatedSettings) {
+          setSettings(updatedSettings);
+          toast.success('Settings updated');
+        }
+      } catch (error) {
+        console.error('Error updating settings:', error);
+        toast.error('Failed to update settings');
+      }
+    }, 500); // 500ms debounce
+
+    setUpdateTimeout(timeout);
+  }, [user, settings, updateTimeout]);
 
   const addAllergen = async () => {
     if (!user || !newAllergen.name.trim()) return;

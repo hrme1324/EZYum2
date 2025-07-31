@@ -1,6 +1,9 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronRight, Clock, Gamepad2, ShoppingBag, SkipForward, Sparkles, Timer, Trophy, User } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
+import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
+import { SettingsService } from '../api/settingsService';
 import { useAuthStore } from '../state/authStore';
 
 interface Meal {
@@ -20,7 +23,8 @@ const Onboarding: React.FC = () => {
   const [selectedMeals, setSelectedMeals] = useState<Meal[]>([]);
   const [score, setScore] = useState(0);
   const [streak, setStreak] = useState(0);
-  const { signInWithGoogle } = useAuthStore();
+  const { signInWithGoogle, user } = useAuthStore();
+  const navigate = useNavigate();
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const staples = [
@@ -99,27 +103,51 @@ const Onboarding: React.FC = () => {
   const handleMealSelect = (meal: Meal) => {
     if (gameState !== 'playing') return;
 
-    const isCorrectCategory = selectedMeals.length === 0 ? meal.category === 'breakfast' :
-                             selectedMeals.length === 1 ? meal.category === 'lunch' :
-                             meal.category === 'dinner';
-
-    if (isCorrectCategory) {
-      setSelectedMeals(prev => [...prev, meal]);
-      setScore(prev => prev + 100 + (streak * 50));
-      setStreak(prev => prev + 1);
-
-      if (selectedMeals.length === 2) {
-        setTimeout(() => {
-          setGameState('completed');
-        }, 500);
-      }
+    const existingMeal = selectedMeals.find(m => m.category === meal.category);
+    if (existingMeal) {
+      setSelectedMeals(prev => prev.map(m => m.category === meal.category ? meal : m));
     } else {
-      setStreak(0);
+      setSelectedMeals(prev => [...prev, meal]);
+    }
+
+    // Calculate score based on time and difficulty
+    const timeBonus = Math.max(0, 30 - meal.time);
+    const difficultyBonus = meal.difficulty === 'easy' ? 10 : meal.difficulty === 'medium' ? 20 : 30;
+    const newScore = score + timeBonus + difficultyBonus;
+    setScore(newScore);
+
+    // Check if all categories are selected
+    if (selectedMeals.length >= 2) {
+      setGameState('completed');
     }
   };
 
   const getAvailableMeals = (category: 'breakfast' | 'lunch' | 'dinner') => {
     return meals.filter(meal => meal.category === category);
+  };
+
+  // Save user preferences when onboarding is completed
+  const saveUserPreferences = async () => {
+    if (!user) return;
+
+    try {
+      // Save time budget setting
+      await SettingsService.upsertUserSettings(user.id, {
+        time_budget: timeBudget,
+        notifications_enabled: true,
+        dark_mode: false,
+        meal_reminders: true,
+        grocery_reminders: true,
+      });
+
+      // Save selected staples as pantry items (you might want to create a pantry service for this)
+      // For now, we'll just save the preferences
+
+      toast.success('Preferences saved successfully!');
+    } catch (error) {
+      console.error('Error saving preferences:', error);
+      toast.error('Failed to save preferences');
+    }
   };
 
   const steps = [
@@ -420,9 +448,13 @@ const Onboarding: React.FC = () => {
     },
   ];
 
-  const nextStep = () => {
+  const nextStep = async () => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
+    } else {
+      // Final step - save preferences and navigate to home
+      await saveUserPreferences();
+      navigate('/');
     }
   };
 

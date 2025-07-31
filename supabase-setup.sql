@@ -13,17 +13,25 @@ CREATE TABLE IF NOT EXISTS public.pantry_items (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Updated recipes table with new structure for recipe management
 CREATE TABLE IF NOT EXISTS public.recipes (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
-  source_url TEXT,
+  category TEXT,
+  area TEXT,
+  instructions TEXT,
+  image TEXT,
+  tags TEXT[],
   ingredients JSONB NOT NULL,
-  cook_time INTEGER NOT NULL,
-  equipment TEXT[],
-  instructions TEXT[],
-  image_url TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  video_url TEXT,
+  website_url TEXT,
+  cooking_time TEXT,
+  difficulty TEXT CHECK (difficulty IN ('Easy', 'Medium', 'Hard')),
+  source_type TEXT DEFAULT 'user', -- 'user' or 'mealdb'
+  mealdb_id TEXT, -- Store MealDB ID if from external API
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS public.meals (
@@ -45,7 +53,7 @@ CREATE TABLE IF NOT EXISTS public.grocery_lists (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- New tables for settings and preferences
+-- User settings and preferences tables
 CREATE TABLE IF NOT EXISTS public.user_settings (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE UNIQUE,
@@ -73,6 +81,32 @@ CREATE TABLE IF NOT EXISTS public.user_appliances (
   appliance_type TEXT NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Smart suggestions table for AI recommendations
+CREATE TABLE IF NOT EXISTS public.smart_suggestions (
+  id TEXT PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  suggestion_type TEXT NOT NULL CHECK (suggestion_type IN ('recipe', 'meal_plan', 'grocery')),
+  title TEXT NOT NULL,
+  description TEXT NOT NULL,
+  reasoning TEXT NOT NULL,
+  ingredients_needed TEXT[] DEFAULT '{}',
+  ingredients_available TEXT[] DEFAULT '{}',
+  estimated_time INTEGER NOT NULL,
+  difficulty TEXT NOT NULL CHECK (difficulty IN ('Easy', 'Medium', 'Hard')),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  used BOOLEAN DEFAULT FALSE
+);
+
+-- Enable RLS on all tables
+ALTER TABLE public.pantry_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.recipes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.meals ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.grocery_lists ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_allergens ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_appliances ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.smart_suggestions ENABLE ROW LEVEL SECURITY;
 
 -- Create RLS policies
 CREATE POLICY "Users can only access their own pantry items"
@@ -103,35 +137,15 @@ CREATE POLICY "Users can only access their own appliances"
   ON public.user_appliances FOR ALL
   USING (auth.uid() = user_id);
 
--- Enable RLS on all tables
-ALTER TABLE public.pantry_items ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.recipes ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.meals ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.grocery_lists ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.user_settings ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.user_allergens ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.user_appliances ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can only access their own smart suggestions"
+  ON public.smart_suggestions FOR ALL
+  USING (auth.uid() = user_id);
 
--- Create smart_suggestions table
-CREATE TABLE IF NOT EXISTS public.smart_suggestions (
-  id TEXT PRIMARY KEY,
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-  suggestion_type TEXT NOT NULL CHECK (suggestion_type IN ('recipe', 'meal_plan', 'grocery')),
-  title TEXT NOT NULL,
-  description TEXT NOT NULL,
-  reasoning TEXT NOT NULL,
-  ingredients_needed TEXT[] DEFAULT '{}',
-  ingredients_available TEXT[] DEFAULT '{}',
-  estimated_time INTEGER NOT NULL,
-  difficulty TEXT NOT NULL CHECK (difficulty IN ('Easy', 'Medium', 'Hard')),
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  used BOOLEAN DEFAULT FALSE
-);
-
--- RLS Policies for smart_suggestions
-DO $$ BEGIN
-  CREATE POLICY "Users can only access their own smart suggestions" ON public.smart_suggestions
-    FOR ALL USING (auth.uid() = user_id);
-EXCEPTION
-  WHEN duplicate_object THEN null;
-END $$;
+-- Create indexes for better performance
+CREATE INDEX IF NOT EXISTS idx_recipes_user_id ON public.recipes(user_id);
+CREATE INDEX IF NOT EXISTS idx_recipes_source_type ON public.recipes(source_type);
+CREATE INDEX IF NOT EXISTS idx_recipes_mealdb_id ON public.recipes(mealdb_id);
+CREATE INDEX IF NOT EXISTS idx_meals_user_id_date ON public.meals(user_id, date);
+CREATE INDEX IF NOT EXISTS idx_pantry_items_user_id ON public.pantry_items(user_id);
+CREATE INDEX IF NOT EXISTS idx_grocery_lists_user_id ON public.grocery_lists(user_id);
+CREATE INDEX IF NOT EXISTS idx_smart_suggestions_user_id ON public.smart_suggestions(user_id);

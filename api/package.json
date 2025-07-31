@@ -3,10 +3,7 @@
   "version": "1.0.0",
   "description": "API functions for Ezyum Food App",
   "main": "index.js",
-  "dependencies": {
-    "openai": "^4.20.1",
-    "axios": "^1.6.0"
-  },
+  "dependencies": {},
   "devDependencies": {},
   "keywords": ["api", "food", "recipe"],
   "author": "Ezyum Food App",

@@ -1,5 +1,80 @@
 # 🔧 Troubleshooting Guide
 
+## 🚨 **Port Configuration & API Issues**
+
+### **Error: `listen EADDRINUSE: address already in use :::3001`**
+
+**Symptoms:**
+- Backend server fails to start
+- Port 3001 is already occupied by another process
+
+**Solutions:**
+
+#### **Quick Fix:**
+```bash
+# 1. Find the process using port 3001
+lsof -i :3001
+
+# 2. Kill the process
+kill <PID>
+
+# 3. Restart backend server
+cd server && npm start
+```
+
+#### **Alternative: Use Different Port**
+```bash
+# Start backend on port 3003
+PORT=3003 npm start
+
+# Update frontend .env.local
+VITE_BACKEND_URL=http://localhost:3003/api
+```
+
+### **Error: `api/api/recipes/random:1 Failed to load resource: 404`**
+
+**Symptoms:**
+- Recipe loading fails with 404 errors
+- Double `/api/` path in URL
+- Backend server not running
+
+**Root Cause:**
+- Incorrect `VITE_BACKEND_URL` configuration
+- Duplicate `/api/` paths in API calls
+- Backend server not running
+
+**Solutions:**
+
+#### **1. Check Backend URL Configuration:**
+```env
+# In .env.local
+VITE_BACKEND_URL=http://localhost:3001/api
+```
+
+#### **2. Verify Backend Server:**
+```bash
+# Check if backend is running
+curl http://localhost:3001/api/health
+
+# Start backend if not running
+cd server && npm start
+```
+
+#### **3. Check API Calls:**
+- Ensure no duplicate `/api/` paths in fetch calls
+- Verify `BACKEND_URL` includes `/api` suffix
+
+### **Error: CORS Policy Blocked**
+
+**Symptoms:**
+- `Access to fetch at 'http://localhost:3001/api/...' from origin 'http://localhost:3002' has been blocked by CORS policy`
+
+**Solution:**
+```env
+# In server/.env
+ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3002,http://localhost:3003
+```
+
 ## 🚨 **HMR (Hot Module Replacement) Errors**
 
 ### **Error: `__HMR_CONFIG_NAME__ is not defined`**

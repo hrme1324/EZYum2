@@ -53,17 +53,66 @@ export class MealService {
   }
 
   /**
+   * Get all meals for a user
+   */
+  static async getAllMeals(userId: string): Promise<Meal[]> {
+    try {
+      const { data, error } = await supabase
+        .from('meals')
+        .select(`
+          *,
+          recipe:recipes(*)
+        `)
+        .eq('user_id', userId)
+        .order('date', { ascending: false })
+        .order('meal_type');
+
+      if (error) {
+        console.error('Error fetching all meals:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Meal service error:', error);
+      return [];
+    }
+  }
+
+  /**
    * Add a meal
    */
   static async addMeal(userId: string, meal: Omit<Meal, 'id' | 'user_id' | 'created_at'>): Promise<Meal | null> {
     try {
+      // Handle MealDB recipe IDs (strings) vs UUID recipe IDs
+      let recipeId = meal.recipe_id;
+
+      // If recipe_id is a MealDB ID (numeric string), we need to find the corresponding recipe in our database
+      if (recipeId && /^\d+$/.test(recipeId)) {
+        // This is a MealDB ID, find the corresponding recipe in our database
+        const { data: recipeData } = await supabase
+          .from('recipes')
+          .select('id')
+          .eq('mealdb_id', recipeId)
+          .eq('user_id', userId)
+          .single();
+
+        if (recipeData) {
+          recipeId = recipeData.id;
+        } else {
+          // Recipe not found in our database, skip adding the meal
+          console.warn(`Recipe with MealDB ID ${recipeId} not found in user's recipes`);
+          return null;
+        }
+      }
+
       const { data, error } = await supabase
         .from('meals')
         .insert({
           user_id: userId,
           date: meal.date,
           meal_type: meal.meal_type,
-          recipe_id: meal.recipe_id,
+          recipe_id: recipeId,
           status: meal.status || 'planned',
           notes: meal.notes,
         })

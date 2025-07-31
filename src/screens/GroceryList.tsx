@@ -1,28 +1,21 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
-  ShoppingCart,
-  Plus,
-  CheckCircle,
-  Circle,
-  Trash2,
-  Sparkles,
-  Download,
-  Share2,
+    CheckCircle,
+    Circle,
+    Plus,
+    ShoppingCart,
+    Trash2
 } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
+import { GroceryService } from '../api/groceryService';
+import { useAuthStore } from '../state/authStore';
 import { GroceryItem } from '../types';
 
 const GroceryList: React.FC = () => {
-  const [groceryItems, setGroceryItems] = useState<GroceryItem[]>([
-    { name: 'Chicken Breast', quantity: 2, unit: 'lbs', category: 'protein', checked: false },
-    { name: 'Broccoli', quantity: 1, unit: 'head', category: 'vegetables', checked: true },
-    { name: 'Brown Rice', quantity: 1, unit: 'bag', category: 'grains', checked: false },
-    { name: 'Olive Oil', quantity: 1, unit: 'bottle', category: 'condiments', checked: false },
-    { name: 'Tomatoes', quantity: 6, unit: 'pieces', category: 'vegetables', checked: false },
-    { name: 'Eggs', quantity: 12, unit: 'pieces', category: 'protein', checked: true },
-    { name: 'Milk', quantity: 1, unit: 'gallon', category: 'dairy', checked: false },
-  ]);
-
+  const { user } = useAuthStore();
+  const [groceryItems, setGroceryItems] = useState<GroceryItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showAddItem, setShowAddItem] = useState(false);
   const [newItem, setNewItem] = useState({
     name: '',
@@ -41,22 +34,126 @@ const GroceryList: React.FC = () => {
     { id: 'other', name: 'Other', emoji: '📦', color: 'bg-gray-100 text-gray-600' },
   ];
 
-  const toggleItem = (index: number) => {
-    const newItems = [...groceryItems];
-    newItems[index].checked = !newItems[index].checked;
-    setGroceryItems(newItems);
+  // Load grocery list on component mount
+  useEffect(() => {
+    if (user) {
+      loadGroceryList();
+    }
+  }, [user]);
+
+  const loadGroceryList = async () => {
+    if (!user) return;
+
+    try {
+      setLoading(true);
+      const items = await GroceryService.getGroceryList(user.id);
+
+      // If no items exist, create default items
+      if (items.length === 0) {
+        const defaultItems: GroceryItem[] = [
+          { name: 'Chicken Breast', quantity: 2, unit: 'lbs', category: 'protein', checked: false },
+          { name: 'Broccoli', quantity: 1, unit: 'head', category: 'vegetables', checked: true },
+          { name: 'Brown Rice', quantity: 1, unit: 'bag', category: 'grains', checked: false },
+          { name: 'Olive Oil', quantity: 1, unit: 'bottle', category: 'condiments', checked: false },
+          { name: 'Tomatoes', quantity: 6, unit: 'pieces', category: 'vegetables', checked: false },
+          { name: 'Eggs', quantity: 12, unit: 'pieces', category: 'protein', checked: true },
+          { name: 'Milk', quantity: 1, unit: 'gallon', category: 'dairy', checked: false },
+        ];
+
+        // Save default items to database
+        const success = await GroceryService.saveGroceryList(user.id, defaultItems);
+        if (success) {
+          setGroceryItems(defaultItems);
+          toast.success('Default grocery list created!');
+        } else {
+          // If saving fails, still show the items locally
+          setGroceryItems(defaultItems);
+          toast.error('Failed to save to database, but items are available locally');
+        }
+      } else {
+        setGroceryItems(items);
+      }
+    } catch (error) {
+      console.error('Error loading grocery list:', error);
+      toast.error('Failed to load grocery list');
+      // Set empty array to prevent infinite loading
+      setGroceryItems([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const deleteItem = (index: number) => {
-    const newItems = groceryItems.filter((_, i) => i !== index);
-    setGroceryItems(newItems);
+  const toggleItem = async (index: number) => {
+    if (!user) return;
+
+    try {
+      const success = await GroceryService.toggleGroceryItem(user.id, index);
+      if (success) {
+        const newItems = [...groceryItems];
+        newItems[index].checked = !newItems[index].checked;
+        setGroceryItems(newItems);
+      } else {
+        toast.error('Failed to update item');
+      }
+    } catch (error) {
+      console.error('Error toggling item:', error);
+      toast.error('Failed to update item');
+    }
   };
 
-  const addItem = () => {
-    if (newItem.name.trim()) {
-      setGroceryItems([...groceryItems, { ...newItem, checked: false }]);
-      setNewItem({ name: '', quantity: 1, unit: 'pieces', category: 'other' });
-      setShowAddItem(false);
+  const deleteItem = async (index: number) => {
+    if (!user) return;
+
+    try {
+      const success = await GroceryService.removeGroceryItem(user.id, index);
+      if (success) {
+        const newItems = groceryItems.filter((_, i) => i !== index);
+        setGroceryItems(newItems);
+        toast.success('Item removed');
+      } else {
+        toast.error('Failed to remove item');
+      }
+    } catch (error) {
+      console.error('Error deleting item:', error);
+      toast.error('Failed to remove item');
+    }
+  };
+
+  const addItem = async () => {
+    if (!user || !newItem.name.trim()) return;
+
+    try {
+      const item: GroceryItem = { ...newItem, checked: false };
+      const success = await GroceryService.addGroceryItem(user.id, item);
+      if (success) {
+        setGroceryItems([...groceryItems, item]);
+        setNewItem({ name: '', quantity: 1, unit: 'pieces', category: 'other' });
+        setShowAddItem(false);
+        toast.success('Item added');
+      } else {
+        toast.error('Failed to add item');
+      }
+    } catch (error) {
+      console.error('Error adding item:', error);
+      toast.error('Failed to add item');
+    }
+  };
+
+  const clearCompleted = async () => {
+    if (!user) return;
+
+    try {
+      const success = await GroceryService.clearCompletedItems(user.id);
+      if (success) {
+        const newItems = groceryItems.filter(item => !item.checked);
+        setGroceryItems(newItems);
+        toast.success('Completed items cleared');
+      } else {
+        toast.error('Failed to clear completed items');
+      }
+    } catch (error) {
+      console.error('Error clearing completed items:', error);
+      toast.error('Failed to clear completed items');
     }
   };
 
@@ -77,6 +174,18 @@ const GroceryList: React.FC = () => {
 
   const checkedCount = groceryItems.filter((item) => item.checked).length;
   const totalCount = groceryItems.length;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-off-white p-4">
+        <div className="max-w-md mx-auto">
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-off-white p-4">
@@ -103,234 +212,181 @@ const GroceryList: React.FC = () => {
           </div>
         </div>
 
-        {/* Quick Actions */}
+        {/* Action Buttons */}
         <div className="flex gap-2 mb-6">
           <button
             onClick={() => setShowAddItem(true)}
-            className="flex-1 bg-coral-blush text-white py-3 rounded-lg hover:bg-opacity-90 transition-colors flex items-center justify-center gap-2"
+            className="flex-1 bg-coral-blush text-white py-3 px-4 rounded-lg hover:bg-opacity-90 transition-colors flex items-center justify-center gap-2"
           >
             <Plus className="w-4 h-4" />
-            <span className="font-medium">Add Item</span>
+            Add Item
           </button>
-          <button className="bg-white border border-gray-200 p-3 rounded-lg hover:border-coral-blush transition-colors">
-            <Download className="w-4 h-4 text-soft-taupe" />
-          </button>
-          <button className="bg-white border border-gray-200 p-3 rounded-lg hover:border-coral-blush transition-colors">
-            <Share2 className="w-4 h-4 text-soft-taupe" />
-          </button>
+          {checkedCount > 0 && (
+            <button
+              onClick={clearCompleted}
+              className="bg-sage-leaf text-white py-3 px-4 rounded-lg hover:bg-opacity-90 transition-colors flex items-center justify-center gap-2"
+            >
+              <Trash2 className="w-4 h-4" />
+              Clear
+            </button>
+          )}
         </div>
 
-        {/* AI Suggestions */}
-        <div className="bg-gradient-to-r from-sage-leaf to-green-400 rounded-xl p-4 text-white mb-6">
-          <div className="flex items-center gap-2 mb-2">
-            <Sparkles className="w-5 h-5" />
-            <h3 className="font-medium">Smart Suggestions</h3>
+        {/* Grocery Items */}
+        {groceryItems.length === 0 ? (
+          <div className="text-center py-12">
+            <ShoppingCart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-rich-charcoal mb-2">Your list is empty</h3>
+            <p className="text-soft-taupe">Add some items to get started</p>
           </div>
-          <p className="text-sm opacity-90 mb-3">Based on your meal plan, you might also need:</p>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between bg-white bg-opacity-20 rounded-lg p-2">
-              <span className="text-sm">Garlic (3 cloves)</span>
-              <button className="text-xs bg-white bg-opacity-30 px-2 py-1 rounded">Add</button>
-            </div>
-            <div className="flex items-center justify-between bg-white bg-opacity-20 rounded-lg p-2">
-              <span className="text-sm">Onion (1 medium)</span>
-              <button className="text-xs bg-white bg-opacity-30 px-2 py-1 rounded">Add</button>
-            </div>
-          </div>
-        </div>
-
-        {/* Grocery Items by Category */}
-        <div className="space-y-6">
-          {Object.entries(groupedItems).map(([category, items]) => (
-            <div key={category}>
-              <div className="flex items-center gap-2 mb-3">
-                <div
-                  className={`w-6 h-6 rounded-full flex items-center justify-center ${getCategoryColor(category)}`}
-                >
-                  <span className="text-sm">{getCategoryEmoji(category)}</span>
+        ) : (
+          <div className="space-y-4">
+            {Object.entries(groupedItems).map(([category, items]) => (
+              <div key={category} className="bg-white rounded-xl p-4 shadow-sm">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-lg">{getCategoryEmoji(category)}</span>
+                  <h3 className="font-medium text-rich-charcoal capitalize">{category}</h3>
                 </div>
-                <h3 className="font-medium text-rich-charcoal capitalize">
-                  {categories.find((c) => c.id === category)?.name || category}
-                </h3>
-              </div>
-
-              <div className="space-y-2">
-                <AnimatePresence>
-                  {items.map((item) => {
-                    const globalIndex = groceryItems.findIndex((i) => i.name === item.name);
+                <div className="space-y-2">
+                  {items.map((item, index) => {
+                    const globalIndex = groceryItems.findIndex(i => i === item);
                     return (
                       <motion.div
-                        key={item.name}
+                        key={`${item.name}-${index}`}
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: 20 }}
-                        className={`bg-white rounded-lg p-4 border transition-all ${
-                          item.checked ? 'border-green-200 bg-green-50' : 'border-gray-200'
-                        }`}
+                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                       >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3 flex-1">
-                            <button
-                              onClick={() => toggleItem(globalIndex)}
-                              className="text-coral-blush hover:text-opacity-80 transition-colors"
-                            >
-                              {item.checked
-                                ? (
-                                  <CheckCircle className="w-5 h-5" />
-                                )
-                                : (
-                                  <Circle className="w-5 h-5" />
-                                )}
-                            </button>
-
-                            <div className="flex-1">
-                              <h4
-                                className={`font-medium ${
-                                  item.checked
-                                    ? 'text-green-600 line-through'
-                                    : 'text-rich-charcoal'
-                                }`}
-                              >
-                                {item.name}
-                              </h4>
-                              <p className="text-sm text-soft-taupe">
+                        <div className="flex items-center gap-3 flex-1">
+                          <button
+                            onClick={() => toggleItem(globalIndex)}
+                            className="flex-shrink-0"
+                          >
+                            {item.checked ? (
+                              <CheckCircle className="w-5 h-5 text-green-500" />
+                            ) : (
+                              <Circle className="w-5 h-5 text-gray-400" />
+                            )}
+                          </button>
+                          <div className="flex-1">
+                            <span className={`font-medium ${item.checked ? 'line-through text-gray-500' : 'text-rich-charcoal'}`}>
+                              {item.name}
+                            </span>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-sm text-soft-taupe">
                                 {item.quantity} {item.unit}
-                              </p>
+                              </span>
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(item.category)}`}>
+                                {categories.find(c => c.id === item.category)?.name}
+                              </span>
                             </div>
                           </div>
-
-                          <button
-                            onClick={() => deleteItem(globalIndex)}
-                            className="text-soft-taupe hover:text-red-500 transition-colors p-1"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
                         </div>
+                        <button
+                          onClick={() => deleteItem(globalIndex)}
+                          className="text-red-500 hover:text-red-700 transition-colors p-1"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </motion.div>
                     );
                   })}
-                </AnimatePresence>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Empty State */}
-        {groceryItems.length === 0 && (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <ShoppingCart className="w-8 h-8 text-soft-taupe" />
-            </div>
-            <h3 className="text-lg font-medium text-rich-charcoal mb-2">
-              Your grocery list is empty
-            </h3>
-            <p className="text-soft-taupe mb-4">Start adding items to your shopping list</p>
-            <button onClick={() => setShowAddItem(true)} className="btn-primary">
-              Add Your First Item
-            </button>
+            ))}
           </div>
         )}
-      </div>
 
-      {/* Add Item Modal */}
-      <AnimatePresence>
-        {showAddItem && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
-            onClick={() => setShowAddItem(false)}
-          >
+        {/* Add Item Modal */}
+        <AnimatePresence>
+          {showAddItem && (
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-xl p-6 w-full max-w-md"
-              onClick={(e) => e.stopPropagation()}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
             >
-              <h2 className="text-xl font-lora text-rich-charcoal mb-4">Add to Grocery List</h2>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-rich-charcoal mb-2">
-                    Item Name
-                  </label>
-                  <input
-                    type="text"
-                    value={newItem.name}
-                    onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-                    className="input-field"
-                    placeholder="e.g., Chicken Breast"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-white rounded-xl p-6 w-full max-w-md"
+              >
+                <h3 className="text-lg font-medium text-rich-charcoal mb-4">Add Item</h3>
+                <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-rich-charcoal mb-2">
-                      Quantity
-                    </label>
+                    <label className="block text-sm font-medium text-rich-charcoal mb-2">Item Name</label>
                     <input
-                      type="number"
-                      value={newItem.quantity}
-                      onChange={(e) => setNewItem({ ...newItem, quantity: parseInt(e.target.value) })
-                      }
-                      className="input-field"
-                      min="1"
+                      type="text"
+                      value={newItem.name}
+                      onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-coral-blush focus:border-transparent"
+                      placeholder="e.g., Chicken Breast"
                     />
                   </div>
-
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-rich-charcoal mb-2">Quantity</label>
+                      <input
+                        type="number"
+                        value={newItem.quantity}
+                        onChange={(e) => setNewItem({ ...newItem, quantity: parseInt(e.target.value) || 1 })}
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-coral-blush focus:border-transparent"
+                        min="1"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-rich-charcoal mb-2">Unit</label>
+                      <select
+                        value={newItem.unit}
+                        onChange={(e) => setNewItem({ ...newItem, unit: e.target.value })}
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-coral-blush focus:border-transparent"
+                      >
+                        <option value="pieces">pieces</option>
+                        <option value="lbs">lbs</option>
+                        <option value="kg">kg</option>
+                        <option value="bottle">bottle</option>
+                        <option value="bag">bag</option>
+                        <option value="head">head</option>
+                        <option value="gallon">gallon</option>
+                        <option value="liter">liter</option>
+                      </select>
+                    </div>
+                  </div>
                   <div>
-                    <label className="block text-sm font-medium text-rich-charcoal mb-2">
-                      Unit
-                    </label>
+                    <label className="block text-sm font-medium text-rich-charcoal mb-2">Category</label>
                     <select
-                      value={newItem.unit}
-                      onChange={(e) => setNewItem({ ...newItem, unit: e.target.value })}
-                      className="input-field"
+                      value={newItem.category}
+                      onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-coral-blush focus:border-transparent"
                     >
-                      <option value="pieces">Pieces</option>
-                      <option value="lbs">Pounds</option>
-                      <option value="oz">Ounces</option>
-                      <option value="g">Grams</option>
-                      <option value="bottle">Bottle</option>
-                      <option value="bag">Bag</option>
-                      <option value="head">Head</option>
-                      <option value="gallon">Gallon</option>
+                      {categories.map((category) => (
+                        <option key={category.id} value={category.id}>
+                          {category.emoji} {category.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-rich-charcoal mb-2">
-                    Category
-                  </label>
-                  <select
-                    value={newItem.category}
-                    onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}
-                    className="input-field"
+                <div className="flex gap-3 mt-6">
+                  <button
+                    onClick={() => setShowAddItem(false)}
+                    className="flex-1 py-3 px-4 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                   >
-                    {categories.map((category) => (
-                      <option key={category.id} value={category.id}>
-                        {category.emoji} {category.name}
-                      </option>
-                    ))}
-                  </select>
+                    Cancel
+                  </button>
+                  <button
+                    onClick={addItem}
+                    className="flex-1 bg-coral-blush text-white py-3 px-4 rounded-lg hover:bg-opacity-90 transition-colors"
+                  >
+                    Add Item
+                  </button>
                 </div>
-              </div>
-
-              <div className="flex gap-3 mt-6">
-                <button onClick={() => setShowAddItem(false)} className="flex-1 btn-secondary">
-                  Cancel
-                </button>
-                <button onClick={addItem} className="flex-1 btn-primary">
-                  Add Item
-                </button>
-              </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 };

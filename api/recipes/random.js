@@ -1,5 +1,3 @@
-import axios from 'axios';
-
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -7,13 +5,18 @@ export default async function handler(req, res) {
 
   try {
     const apiKey = process.env.MEALDB_API_KEY || '1'; // MealDB has a public API
-    const response = await axios.get(
+    const response = await fetch(
       `https://www.themealdb.com/api/json/v1/${apiKey}/random.php`
     );
 
-    const meal = response.data.meals?.[0];
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const meal = data.meals?.[0];
     if (!meal) {
-      return res.status(404).json({ error: 'No random recipe found' });
+      return res.status(404).json({ error: 'No recipe found' });
     }
 
     const formattedMeal = {
@@ -24,6 +27,8 @@ export default async function handler(req, res) {
       instructions: meal.strInstructions,
       image: meal.strMealThumb,
       tags: meal.strTags ? meal.strTags.split(',') : [],
+      videoUrl: meal.strYoutube || null,
+      websiteUrl: meal.strSource || null,
       ingredients: extractIngredients(meal)
     };
 
