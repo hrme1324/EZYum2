@@ -12,7 +12,7 @@ export default async function handler(req, res) {
 
     const apiKey = process.env.MEALDB_API_KEY || '1'; // MealDB has a public API
     const response = await fetch(
-      `https://www.themealdb.com/api/json/v1/${apiKey}/search.php?s=${encodeURIComponent(query)}`
+      `https://www.themealdb.com/api/json/v1/${apiKey}/search.php?s=${encodeURIComponent(query)}`,
     );
 
     if (!response.ok) {
@@ -21,7 +21,7 @@ export default async function handler(req, res) {
 
     const data = await response.json();
     const meals = data.meals || [];
-    const formattedMeals = meals.map(meal => ({
+    const formattedMeals = meals.map((meal) => ({
       id: meal.idMeal,
       name: meal.strMeal,
       category: meal.strCategory,
@@ -31,7 +31,7 @@ export default async function handler(req, res) {
       tags: meal.strTags ? meal.strTags.split(',') : [],
       videoUrl: meal.strYoutube || null,
       websiteUrl: meal.strSource || null,
-      ingredients: extractIngredients(meal)
+      ingredients: extractIngredients(meal),
     }));
 
     res.status(200).json(formattedMeals);
@@ -49,7 +49,7 @@ function extractIngredients(meal) {
     if (ingredient && ingredient.trim()) {
       ingredients.push({
         name: ingredient.trim(),
-        measure: measure ? measure.trim() : ''
+        measure: measure ? measure.trim() : '',
       });
     }
   }

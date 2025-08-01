@@ -36,15 +36,15 @@ if (fs.existsSync(distPath)) {
     // Check asset files
     const assetsPath = path.join(distPath, 'assets');
     const assetFiles = fs.readdirSync(assetsPath);
-    const jsFiles = assetFiles.filter(f => f.endsWith('.js'));
-    const cssFiles = assetFiles.filter(f => f.endsWith('.css'));
+    const jsFiles = assetFiles.filter((f) => f.endsWith('.js'));
+    const cssFiles = assetFiles.filter((f) => f.endsWith('.css'));
 
     console.log(`📁 Found ${jsFiles.length} JS files and ${cssFiles.length} CSS files`);
 
     // Check if HTML references match actual files
     const indexHtml = fs.readFileSync(path.join(distPath, 'index.html'), 'utf8');
-    const jsMatches = jsFiles.some(jsFile => indexHtml.includes(jsFile));
-    const cssMatches = cssFiles.some(cssFile => indexHtml.includes(cssFile));
+    const jsMatches = jsFiles.some((jsFile) => indexHtml.includes(jsFile));
+    const cssMatches = cssFiles.some((cssFile) => indexHtml.includes(cssFile));
 
     if (jsMatches && cssMatches) {
       console.log('✅ HTML references match actual asset files');
@@ -76,7 +76,7 @@ try {
 // Check for port conflicts
 const ports = [3000, 3001, 3002];
 console.log('\n🔌 Checking for port conflicts...');
-ports.forEach(port => {
+ports.forEach((port) => {
   try {
     execSync(`lsof -i :${port}`, { stdio: 'ignore' });
     console.log(`⚠️  Port ${port} is in use`);

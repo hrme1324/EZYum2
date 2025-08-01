@@ -88,7 +88,7 @@ const MealPlanner: React.FC = () => {
         meal_type: mealType as 'breakfast' | 'lunch' | 'dinner' | 'snack',
         recipe_id: draggedRecipe.id,
         recipe_name: draggedRecipe.name,
-        notes: `Added from recipe search`,
+        notes: 'Added from recipe search',
         status: 'planned' as const,
       };
 

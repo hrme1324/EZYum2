@@ -25,7 +25,7 @@ const Onboarding: React.FC = () => {
   const [streak, setStreak] = useState(0);
   const { signInWithGoogle, user } = useAuthStore();
   const navigate = useNavigate();
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const staples = [
     'Eggs', 'Rice', 'Pasta', 'Beans', 'Chicken', 'Ground Beef',

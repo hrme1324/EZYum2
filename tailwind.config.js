@@ -1,8 +1,8 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
+    './index.html',
+    './src/**/*.{js,ts,jsx,tsx}',
   ],
   theme: {
     extend: {
@@ -20,8 +20,8 @@ export default {
         'wheat-gold': '#D4AF37',
       },
       fontFamily: {
-        'lora': ['Lora', 'serif'],
-        'inter': ['Inter', 'sans-serif'],
+        lora: ['Lora', 'serif'],
+        inter: ['Inter', 'sans-serif'],
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',
@@ -45,4 +45,4 @@ export default {
     },
   },
   plugins: [],
-} 
+};

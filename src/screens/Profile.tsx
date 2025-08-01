@@ -27,7 +27,7 @@ const Profile: React.FC = () => {
   const [showApplianceModal, setShowApplianceModal] = useState(false);
   const [newAllergen, setNewAllergen] = useState({ name: '', severity: 'moderate' as const });
   const [newAppliance, setNewAppliance] = useState({ name: '', type: 'cooking' });
-  const [updateTimeout, setUpdateTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [updateTimeout, setUpdateTimeout] = useState<ReturnType<typeof setTimeout> | null>(null);
 
   // Mock user stats
   const userStats = {
