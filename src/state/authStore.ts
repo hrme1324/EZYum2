@@ -16,10 +16,28 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   signInWithGoogle: async () => {
     try {
+      // Determine the correct redirect URL for both development and production
+      const isDev = import.meta.env.DEV;
+      let baseUrl: string;
+
+      // Check for environment variable first
+      if (import.meta.env.VITE_SITE_URL) {
+        baseUrl = import.meta.env.VITE_SITE_URL;
+      } else if (isDev) {
+        baseUrl = 'http://localhost:3000';
+      } else {
+        // In production, use the current domain or fallback to ezyum.com
+        baseUrl = window.location.origin || 'https://ezyum.com';
+      }
+
+      const redirectUrl = `${baseUrl}/auth/callback`;
+
+      console.log('🔐 Auth redirect URL:', redirectUrl);
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: redirectUrl,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
