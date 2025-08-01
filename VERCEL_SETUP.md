@@ -1,126 +1,172 @@
-# 🚀 Vercel Environment Variables Setup
+# Vercel Full-Stack Deployment Guide
 
-## 🔧 **How to Set Environment Variables in Vercel**
+## 🚀 Overview
 
-### **Step 1: Access Vercel Dashboard**
+This project is configured for full-stack deployment on Vercel with:
+- **Frontend**: React + Vite static build
+- **Backend**: Vercel serverless functions (converted from Express.js)
+- **Database**: Supabase (external)
 
-1. Go to [vercel.com](https://vercel.com)
-2. Select your **Ezyum Food App** project
-3. Go to **Settings** → **Environment Variables**
+## 📁 Project Structure
 
-### **Step 2: Add Required Variables**
+```
+/
+├── src/                    # Frontend React app
+├── api/                    # Vercel serverless functions
+│   ├── health.js          # Health check endpoint
+│   ├── ai/                # AI-powered endpoints
+│   │   ├── recipe-suggestions.js
+│   │   └── food-categorization.js
+│   └── recipes/           # Recipe endpoints
+│       ├── search.js
+│       └── random.js
+├── server/                 # Express.js server (local development only)
+├── vercel.json            # Vercel configuration
+└── package.json           # Frontend dependencies
+```
 
-Add these **exact** variable names:
+## 🔧 API Endpoints
 
-| Variable Name            | Value                                                                                                                                                                                                              | Required |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- |
-| `VITE_SUPABASE_URL`      | `https://whclrrwwnffirgcngeos.supabase.co`                                                                                                                                                                         | ✅ Yes   |
-| `VITE_SUPABASE_ANON_KEY` | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndoY2xycnd3bmZmaXJnY25nZW9zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM3MTcxMjksImV4cCI6MjA2OTI5MzEyOX0.YpJOsuOC7suZNPZxx9xgIPFdsJY-XrglfIge_CSeYx8` | ✅ Yes   |
+### Health Check
+- **GET** `/api/health` - Server health check
 
-### **Step 3: Environment Selection**
+### AI Services
+- **POST** `/api/ai/recipe-suggestions` - OpenAI recipe suggestions
+- **POST** `/api/ai/food-categorization` - Hugging Face food classification
 
-- ✅ **Production** (required)
-- ✅ **Preview** (recommended)
-- ✅ **Development** (optional)
+### Recipe Services
+- **GET** `/api/recipes/search?query=...` - MealDB recipe search
+- **GET** `/api/recipes/random` - MealDB random recipe
 
-### **Step 4: Deploy**
+## 🌍 Environment Variables
 
-1. Commit and push your changes
-2. Vercel will automatically redeploy
-3. Check the deployment logs
+### Required for Production
+```bash
+# OpenAI API (for recipe suggestions)
+OPENAI_API_KEY=your_openai_api_key
 
-## 🔍 **Verification Steps**
+# Hugging Face API (for food categorization)
+HUGGINGFACE_API_KEY=your_huggingface_api_key
 
-### **1. Check Deployment Logs**
+# MealDB API (optional, uses public API by default)
+MEALDB_API_KEY=your_mealdb_api_key
+```
 
-In Vercel Dashboard → Deployments → Latest → Functions:
+### Frontend Environment
+```bash
+# For custom backend URL (optional)
+VITE_BACKEND_URL=https://your-custom-backend.com/api
+```
 
-- Look for the console logs we added
-- Should show environment variables status
+## 🚀 Deployment Steps
 
-### **2. Test the App**
+### 1. Set Environment Variables
+In your Vercel dashboard:
+1. Go to your project settings
+2. Navigate to "Environment Variables"
+3. Add the required API keys
 
-- Visit your deployed app
-- Open browser console (F12)
-- Look for the debug logs:
-  ```
-  🔍 Environment Variables Check: { hasUrl: true, hasKey: true, ... }
-  🎯 Final Supabase Config: { usingEnvVars: true, ... }
-  ```
+### 2. Deploy to Vercel
+```bash
+# Install Vercel CLI
+npm i -g vercel
 
-### **3. Expected Behavior**
+# Deploy
+vercel
 
-- ✅ **If Vercel vars are set**: `usingEnvVars: true`
-- ❌ **If Vercel vars are missing**: `usingEnvVars: false, usingFallbacks: true`
+# Or connect to GitHub for automatic deployments
+vercel --prod
+```
 
-## 🚨 **Common Issues & Solutions**
+### 3. Verify Deployment
+- Frontend: `https://your-app.vercel.app`
+- API Health: `https://your-app.vercel.app/api/health`
 
-### **Issue 1: "Variables not found"**
+## 🔄 Development vs Production
 
-**Solution:**
+### Local Development
+- **Frontend**: `http://localhost:3000` (Vite dev server)
+- **Backend**: `http://localhost:3001` (Express.js server)
+- **API Calls**: Use `http://localhost:3001/api/*`
 
-1. Double-check variable names (must start with `VITE_`)
-2. Ensure they're set for **Production** environment
-3. Redeploy after adding variables
+### Production (Vercel)
+- **Frontend**: Static build served by Vercel
+- **Backend**: Serverless functions at `/api/*`
+- **API Calls**: Use relative paths `/api/*`
 
-### **Issue 2: "Build fails"**
+## 🛠️ Troubleshooting
 
-**Solution:**
+### Common Issues
 
-1. The app now has fallbacks - it should never fail
-2. Check Vercel build logs for other errors
-3. Ensure TypeScript compilation passes
+1. **API Routes Not Working**
+   - Check that `vercel.json` has the correct API route configuration
+   - Verify environment variables are set in Vercel dashboard
 
-### **Issue 3: "Authentication not working"**
+2. **CORS Errors**
+   - API functions include CORS headers
+   - Frontend uses relative paths in production
 
-**Solution:**
+3. **Environment Variables**
+   - Ensure all required API keys are set in Vercel
+   - Check function logs for missing environment variables
 
-1. Verify Supabase Auth settings
-2. Check redirect URIs in Supabase
-3. Ensure Google OAuth is configured
+### Debugging
+```bash
+# Check Vercel function logs
+vercel logs
 
-## 📋 **Complete Setup Checklist**
+# Test API endpoints locally
+curl https://your-app.vercel.app/api/health
+```
 
-### **Vercel Environment Variables:**
+## 📊 Monitoring
 
-- [ ] `VITE_SUPABASE_URL` set
-- [ ] `VITE_SUPABASE_ANON_KEY` set
-- [ ] Variables set for Production environment
-- [ ] Variables set for Preview environment (optional)
+### Health Checks
+- Monitor `/api/health` endpoint
+- Set up uptime monitoring for critical endpoints
 
-### **Supabase Configuration:**
+### Logs
+- Vercel function logs available in dashboard
+- Real-time logs with `vercel logs --follow`
 
-- [ ] Auth → Settings → Site URL: `https://your-app.vercel.app`
-- [ ] Auth → Settings → Redirect URLs: `https://your-app.vercel.app/auth/callback`
-- [ ] Google OAuth provider enabled
+## 🔒 Security
 
-### **Testing:**
+### API Key Protection
+- All sensitive keys stored as environment variables
+- Keys only accessible in serverless function context
+- No client-side exposure of API keys
 
-- [ ] App deploys successfully
-- [ ] Console shows environment variables loaded
-- [ ] Authentication works
-- [ ] All features function properly
+### CORS Configuration
+- Proper CORS headers in all API functions
+- Origin validation for production domains
 
-## 🎯 **Why This Works**
+## 📈 Performance
 
-### **Vite Environment Variables:**
+### Optimization
+- Serverless functions auto-scale
+- Static assets served from CDN
+- API responses cached where appropriate
 
-- Only variables starting with `VITE_` are included in the build
-- Available at both build time and runtime
-- Automatically replaced during build process
+### Limits
+- Vercel function timeout: 10 seconds
+- Payload size: 4.5MB
+- Concurrent executions: Based on plan
 
-### **Vercel Integration:**
+## 🔄 Migration from Express.js
 
-- Vercel injects environment variables during build
-- Available in the client-side JavaScript
-- Secure and properly scoped
+### What Changed
+- Express.js server → Vercel serverless functions
+- Middleware → Individual function CORS handling
+- Route handlers → Export default functions
 
-### **Fallback System:**
+### Benefits
+- No server management
+- Auto-scaling
+- Global CDN
+- Integrated with frontend deployment
 
-- If Vercel variables aren't set, uses safe fallbacks
-- App never crashes due to missing environment variables
-- Graceful degradation ensures functionality
+## 📚 Additional Resources
 
----
-
-**Your Vercel environment variables should work perfectly now!** 🚀
+- [Vercel Serverless Functions](https://vercel.com/docs/functions)
+- [Vercel Environment Variables](https://vercel.com/docs/projects/environment-variables)
+- [Vercel Deployment](https://vercel.com/docs/deployments)
