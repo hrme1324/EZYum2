@@ -1,258 +1,282 @@
-# 🔧 Troubleshooting Guide
+# 🔧 Ezyum Food App Troubleshooting Guide
 
-## 🚨 **Port Configuration & API Issues**
+## 🚨 Common Issues & Solutions
 
-### **Error: `listen EADDRINUSE: address already in use :::3001`**
+### 1. **MIME Type Error: "Expected a JavaScript-or-Wasm module script but the server responded with a MIME type of 'text/html'"**
 
 **Symptoms:**
-- Backend server fails to start
-- Port 3001 is already occupied by another process
+- Browser console shows MIME type errors
+- Assets fail to load (404 errors)
+- App doesn't render properly
+
+**Root Causes:**
+1. **Stale build files** - Old asset references don't match new files
+2. **Development server issues** - Vite not serving latest assets
+3. **Proxy configuration conflicts** - API proxy interfering with asset serving
+4. **Browser cache** - Cached old asset references
 
 **Solutions:**
 
-#### **Quick Fix:**
+#### Quick Fix:
 ```bash
-# 1. Find the process using port 3001
-lsof -i :3001
-
-# 2. Kill the process
-kill <PID>
-
-# 3. Restart backend server
-cd server && npm start
-```
-
-#### **Alternative: Use Different Port**
-```bash
-# Start backend on port 3003
-PORT=3003 npm start
-
-# Update frontend .env.local
-VITE_BACKEND_URL=http://localhost:3003/api
-```
-
-### **Error: `api/api/recipes/random:1 Failed to load resource: 404`**
-
-**Symptoms:**
-- Recipe loading fails with 404 errors
-- Double `/api/` path in URL
-- Backend server not running
-
-**Root Cause:**
-- Incorrect `VITE_BACKEND_URL` configuration
-- Duplicate `/api/` paths in API calls
-- Backend server not running
-
-**Solutions:**
-
-#### **1. Check Backend URL Configuration:**
-```env
-# In .env.local
-VITE_BACKEND_URL=http://localhost:3001/api
-```
-
-#### **2. Verify Backend Server:**
-```bash
-# Check if backend is running
-curl http://localhost:3001/api/health
-
-# Start backend if not running
-cd server && npm start
-```
-
-#### **3. Check API Calls:**
-- Ensure no duplicate `/api/` paths in fetch calls
-- Verify `BACKEND_URL` includes `/api` suffix
-
-### **Error: CORS Policy Blocked**
-
-**Symptoms:**
-- `Access to fetch at 'http://localhost:3001/api/...' from origin 'http://localhost:3002' has been blocked by CORS policy`
-
-**Solution:**
-```env
-# In server/.env
-ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3002,http://localhost:3003
-```
-
-## 🚨 **HMR (Hot Module Replacement) Errors**
-
-### **Error: `__HMR_CONFIG_NAME__ is not defined`**
-
-**Symptoms:**
-- Development server shows HMR errors
-- Browser console shows `__HMR_CONFIG_NAME__` errors
-- Hot reload stops working
-
-**Solutions:**
-
-#### **Quick Fix:**
-```bash
-# 1. Stop the dev server
-pkill -f "vite"
-
-# 2. Clear Vite cache
-rm -rf node_modules/.vite
-
-# 3. Clear build cache
-rm -rf dist
-
-# 4. Restart dev server
+# Clean everything and rebuild
+rm -rf dist node_modules/.vite
+npm run build
 npm run dev
 ```
 
-#### **Nuclear Option (if above doesn't work):**
+#### Detailed Fix:
 ```bash
-# 1. Stop everything
+# 1. Stop all development servers
 pkill -f "vite"
 pkill -f "node"
 
 # 2. Clear all caches
-rm -rf node_modules/.vite
-rm -rf dist
-rm -rf .vite
+rm -rf dist node_modules/.vite .vite
 
-# 3. Reinstall dependencies
+# 3. Reinstall dependencies (if needed)
 npm install
 
-# 4. Restart
+# 4. Rebuild and start
+npm run build
 npm run dev
 ```
 
-### **Browser Cache Issues:**
-1. **Hard Refresh**: `Ctrl+Shift+R` (Windows) or `Cmd+Shift+R` (Mac)
-2. **Clear Browser Cache**: Developer Tools → Application → Storage → Clear
-3. **Incognito Mode**: Test in private/incognito browser
+#### Browser Fix:
+1. **Hard refresh**: `Cmd+Shift+R` (Mac) or `Ctrl+Shift+R` (Windows)
+2. **Clear browser cache**: Developer Tools → Application → Storage → Clear
+3. **Disable cache**: Developer Tools → Network → Disable cache
 
-## 🔥 **Environment Variable Errors**
+### 2. **API Connection Errors**
 
-### **Error: "Missing Supabase environment variables"**
+**Symptoms:**
+- "MealDB API error" in console
+- Recipe data not loading
+- Network errors
 
-**Solution:**
-- The app now has fallback values - this error should never appear
-- Check browser console for debug logs
-- Verify Vercel environment variables are set correctly
+**Solutions:**
 
-## 🏗️ **Build Errors**
-
-### **TypeScript Errors:**
+#### Check API Connectivity:
 ```bash
-# Fix automatically
+# Test MealDB API
+curl https://www.themealdb.com/api/json/v1/1/categories.php
+
+# Test with our proxy
+curl http://localhost:3000/api/health
+```
+
+#### Fix API Issues:
+1. **Check internet connection**
+2. **Verify API endpoints** in `vite.config.ts`
+3. **Use offline mode** if APIs are down
+
+### 3. **Port Conflicts**
+
+**Symptoms:**
+- "Port X is in use" errors
+- Server won't start
+
+**Solutions:**
+```bash
+# Find what's using the port
+lsof -i :3000
+lsof -i :3001
+lsof -i :3002
+
+# Kill processes
+kill -9 <PID>
+
+# Or use different port
+npm run dev -- --port 3003
+```
+
+### 4. **Build Failures**
+
+**Symptoms:**
+- `npm run build` fails
+- TypeScript errors
+- Missing dependencies
+
+**Solutions:**
+```bash
+# Clean install
+rm -rf node_modules package-lock.json
+npm install
+
+# Fix TypeScript errors
+npm run type-check
 npm run lint:fix
 
-# Check types
-npm run type-check
-
-# Build test
+# Rebuild
 npm run build
 ```
 
-### **ESLint Errors:**
+### 5. **Development Server Issues**
+
+**Symptoms:**
+- Hot reload not working
+- Changes not reflecting
+- Server crashes
+
+**Solutions:**
 ```bash
-# Fix automatically
-npm run lint:fix
-
-# Check manually
-npm run lint
-```
-
-## 🚀 **Deployment Issues**
-
-### **Vercel Build Fails:**
-1. **Check Build Logs**: Vercel Dashboard → Deployments → Latest
-2. **Test Locally**: `npm run build`
-3. **Environment Variables**: Verify in Vercel Dashboard
-4. **TypeScript**: Ensure no type errors
-
-### **Authentication Issues:**
-1. **Supabase Settings**: Check Auth → Settings
-2. **Redirect URIs**: Verify in Supabase and Google Cloud
-3. **Environment Variables**: Ensure Vercel has correct values
-
-## 🔍 **Debugging Steps**
-
-### **1. Check Console Logs:**
-```javascript
-// Look for these in browser console:
-🔍 Environment Variables Check: { hasUrl: true, hasKey: true, ... }
-🎯 Final Supabase Config: { usingEnvVars: true, ... }
-```
-
-### **2. Verify Environment Variables:**
-```bash
-# Local development
-cat .env.local
-
-# Check what Vite sees
+# Restart with clean cache
+rm -rf node_modules/.vite
 npm run dev
-# Look for environment logs in terminal
+
+# Check for file watching issues
+echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf
+sudo sysctl -p
 ```
 
-### **3. Test Build Process:**
+## 🔍 Diagnostic Tools
+
+### Run Troubleshooting Script:
 ```bash
-# Clean build
+node troubleshoot.js
+```
+
+### Manual Checks:
+
+#### 1. **Check Build Output:**
+```bash
+ls -la dist/
+ls -la dist/assets/
+```
+
+#### 2. **Verify Asset References:**
+```bash
+# Check if HTML references match actual files
+grep -o 'index-[^"]*\.js' dist/index.html
+ls dist/assets/*.js
+```
+
+#### 3. **Test Development Server:**
+```bash
+# Start dev server
+npm run dev
+
+# In another terminal, test endpoints
+curl http://localhost:3000/
+curl http://localhost:3000/api/health
+```
+
+## 🛠️ Advanced Fixes
+
+### 1. **Fix Vite Configuration Issues:**
+
+If you're still having issues, try this minimal `vite.config.ts`:
+
+```typescript
+import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vite';
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    port: 3000,
+    host: true,
+  },
+  build: {
+    outDir: 'dist',
+    sourcemap: true,
+  },
+});
+```
+
+### 2. **Fix Package.json Scripts:**
+
+Ensure your scripts are correct:
+
+```json
+{
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "type-check": "tsc --noEmit"
+  }
+}
+```
+
+### 3. **Environment Variables:**
+
+Check if you need environment variables:
+
+```bash
+# Copy example env file
+cp env.example .env
+
+# Add your API keys
+echo "VITE_SUPABASE_URL=your_supabase_url" >> .env
+echo "VITE_SUPABASE_ANON_KEY=your_supabase_key" >> .env
+```
+
+## 🚀 Production Deployment Issues
+
+### 1. **Vercel Deployment:**
+
+If deploying to Vercel, ensure:
+- Build command: `npm run build`
+- Output directory: `dist`
+- Install command: `npm install`
+
+### 2. **Static Hosting:**
+
+For static hosting (Netlify, GitHub Pages):
+```bash
+# Build for production
 npm run build
 
-# Check for errors
-npm run type-check
-npm run lint
+# Test locally
+npm run preview
 ```
 
-## 🛠️ **Common Commands**
+## 📞 Getting Help
 
-### **Development:**
+### 1. **Check Logs:**
 ```bash
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run preview      # Preview production build
+# Development logs
+npm run dev 2>&1 | tee dev.log
+
+# Build logs
+npm run build 2>&1 | tee build.log
 ```
 
-### **Code Quality:**
-```bash
-npm run lint         # Check code style
-npm run lint:fix     # Fix code style automatically
-npm run type-check   # Check TypeScript types
-npm run format       # Format code with Prettier
-```
+### 2. **Common Error Messages:**
 
-### **Security:**
-```bash
-# Pre-commit hooks run automatically
-git add .
-git commit -m "message"  # Will run security checks
-```
+| Error | Solution |
+|-------|----------|
+| `MIME type` | Clear cache, rebuild |
+| `Port in use` | Kill processes, use different port |
+| `Module not found` | Reinstall dependencies |
+| `API error` | Check internet, use offline mode |
+| `TypeScript error` | Run `npm run type-check` |
 
-## 🚨 **Emergency Procedures**
+### 3. **Still Stuck?**
 
-### **If App Won't Start:**
-1. **Kill all processes**: `pkill -f "node" && pkill -f "vite"`
-2. **Clear caches**: `rm -rf node_modules/.vite dist`
-3. **Reinstall**: `npm install`
-4. **Restart**: `npm run dev`
+1. **Run the troubleshooting script**: `node troubleshoot.js`
+2. **Check GitHub issues** for similar problems
+3. **Clear everything and start fresh**:
+   ```bash
+   rm -rf node_modules dist package-lock.json
+   npm install
+   npm run build
+   npm run dev
+   ```
 
-### **If Build Fails:**
-1. **Check TypeScript**: `npm run type-check`
-2. **Fix linting**: `npm run lint:fix`
-3. **Clean build**: `rm -rf dist && npm run build`
+## ✅ Success Checklist
 
-### **If Environment Variables Don't Work:**
-1. **Check Vercel**: Dashboard → Settings → Environment Variables
-2. **Verify names**: Must start with `VITE_`
-3. **Redeploy**: Push changes to trigger new deployment
-
-## 📞 **Getting Help**
-
-### **Debug Information to Collect:**
-1. **Browser Console**: Screenshot of errors
-2. **Terminal Output**: Copy/paste build logs
-3. **Environment**: Local vs Production behavior
-4. **Steps to Reproduce**: Exact sequence of actions
-
-### **Useful Files:**
-- `VERCEL_SETUP.md` - Environment variable setup
-- `ENVIRONMENT.md` - Environment configuration
-- `SECURITY.md` - Security guidelines
+After fixing issues, verify:
+- [ ] `npm run dev` starts without errors
+- [ ] App loads in browser at `http://localhost:3000`
+- [ ] No console errors
+- [ ] API calls work (or offline mode works)
+- [ ] Hot reload works
+- [ ] Build succeeds: `npm run build`
+- [ ] Preview works: `npm run preview`
 
 ---
 
-**Most issues can be resolved with the quick fixes above!** 🛠️
+**💡 Pro Tip:** Always run `node troubleshoot.js` first to get a quick diagnosis of your setup!

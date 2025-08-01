@@ -10,11 +10,11 @@ export default defineConfig({
     hmr: {
       overlay: true,
     },
-
     proxy: {
       '/api': {
         target: 'https://www.themealdb.com',
         changeOrigin: true,
+        secure: false,
         rewrite: (path) => {
           // Rewrite API calls to MealDB endpoints
           if (path.startsWith('/api/recipes/search')) {
@@ -26,16 +26,22 @@ export default defineConfig({
             return '/api/json/v1/1/random.php';
           }
           if (path.startsWith('/api/health')) {
-            return '/api/json/v1/1/categories.php'; // Use categories as health check
+            return '/api/json/v1/1/categories.php';
           }
           return path;
         },
         configure: (proxy, options) => {
           proxy.on('proxyReq', (proxyReq, req, res) => {
-            // Add CORS headers
             res.setHeader('Access-Control-Allow-Origin', '*');
             res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
             res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+          });
+          proxy.on('error', (err, req, res) => {
+            console.error('Proxy error:', err);
+            res.writeHead(500, {
+              'Content-Type': 'application/json',
+            });
+            res.end(JSON.stringify({ error: 'Proxy error', message: err.message }));
           });
         },
       },
