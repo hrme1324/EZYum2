@@ -9,15 +9,10 @@
       }
     }
   ],
-  "functions": {
-    "server/server.js": {
-      "runtime": "nodejs18.x"
-    }
-  },
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/server/server.js"
+      "dest": "/api/$1"
     },
     {
       "src": "/(.*\\..*)",

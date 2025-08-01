@@ -26,14 +26,29 @@
 
 - **Database:** Supabase (PostgreSQL)
 - **Authentication:** Supabase Auth (Google OAuth)
-- **API:** Vercel Serverless Functions
-- **External APIs:** MealDB (recipe database)
+- **API:** Express.js Server (Local Development) → Vercel Serverless Functions (Production)
+- **External APIs:** MealDB (recipe database), OpenAI (AI recipe suggestions), Hugging Face (food categorization)
 
 ### Security
 
 - **Row Level Security (RLS):** Enabled on all tables
 - **API Key Protection:** Sensitive keys stored on backend only
 - **CORS:** Configured for production domains
+
+### Deployment Architecture
+
+#### Development Environment
+- **Frontend:** Vite dev server on `http://localhost:3000`
+- **Backend:** Express.js server on `http://localhost:3001`
+- **Database:** Supabase (cloud)
+
+#### Production Environment (Vercel)
+- **Frontend:** Vercel static build deployment
+- **Backend:** Vercel serverless functions (converted from Express.js)
+- **Database:** Supabase (cloud)
+- **API Routes:** `/api/*` → Vercel serverless functions
+- **Static Assets:** Served directly by Vercel
+- **SPA Routing:** All non-API routes → `index.html`
 
 ---
 
@@ -59,6 +74,22 @@
 ## 🚀 Key Features
 
 ### ✅ Implemented Features
+
+#### 0. **Full-Stack Deployment (Vercel)**
+
+- **Express.js to Serverless:** Converted Express.js server to Vercel serverless functions
+- **API Routes:** All backend endpoints available at `/api/*`
+- **Environment Variables:** Secure API key management
+- **CORS Configuration:** Proper cross-origin handling
+- **Error Handling:** Comprehensive error responses
+- **Health Checks:** `/api/health` endpoint for monitoring
+
+**API Endpoints:**
+- `GET /api/health` - Server health check
+- `POST /api/ai/recipe-suggestions` - OpenAI-powered recipe suggestions
+- `POST /api/ai/food-categorization` - Hugging Face food classification
+- `GET /api/recipes/search` - MealDB recipe search (proxy)
+- `GET /api/recipes/random` - MealDB random recipe (proxy)
 
 #### 1. **Authentication System**
 
