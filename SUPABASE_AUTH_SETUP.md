@@ -1,116 +1,116 @@
 # Supabase Authentication Setup Guide
 
-## 🔐 Fixing Redirect Issues
+## 🔧 Required Configuration
 
-If you're experiencing redirect issues where signing in on production redirects to localhost, follow these steps:
+### 1. Supabase Dashboard Configuration
 
-## 📋 Supabase Dashboard Configuration
+Go to your Supabase project dashboard and configure the following:
 
-### 1. Go to Supabase Dashboard
-1. Visit [supabase.com](https://supabase.com)
-2. Select your **Ezyum Food App** project
-3. Go to **Authentication** → **Settings**
+#### **Authentication > URL Configuration**
+- **Site URL**: `https://ezyum.com`
+- **Redirect URLs**: Add these URLs:
+  ```
+  https://ezyum.com/auth/callback
+  http://localhost:3000/auth/callback
+  https://your-vercel-domain.vercel.app/auth/callback
+  ```
 
-### 2. Configure Site URL
-Set the **Site URL** to:
-```
-https://ezyum.com
-```
+#### **Authentication > Providers > Google**
+- **Enabled**: ✅ Yes
+- **Client ID**: Your Google OAuth Client ID
+- **Client Secret**: Your Google OAuth Client Secret
+- **Redirect URL**: `https://ezyum.com/auth/callback`
 
-### 3. Configure Redirect URLs
-Add these URLs to the **Redirect URLs** list:
+### 2. Google OAuth Configuration
 
-#### Development URLs:
-```
-http://localhost:3000/auth/callback
-http://localhost:3000/
-```
+In your Google Cloud Console:
 
-#### Production URLs:
+#### **OAuth 2.0 Client IDs > Authorized redirect URIs**
+Add these redirect URIs:
 ```
 https://ezyum.com/auth/callback
-https://ezyum.com/
-https://your-vercel-app.vercel.app/auth/callback
-https://your-vercel-app.vercel.app/
+http://localhost:3000/auth/callback
+https://your-vercel-domain.vercel.app/auth/callback
 ```
 
-### 4. Save Changes
-Click **Save** to apply the changes.
+### 3. Environment Variables
 
-## 🔧 Environment Variables
-
-### For Production (Vercel)
-Add this environment variable in your Vercel dashboard:
-```
+#### **Frontend (.env.local)**
+```bash
+VITE_SUPABASE_URL=https://whclrrwwnffirgcngeos.supabase.co
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 VITE_SITE_URL=https://ezyum.com
 ```
 
-### For Development (.env.local)
-```
-VITE_SITE_URL=http://localhost:3000
+#### **Backend (server/.env)**
+```bash
+SUPABASE_URL=https://whclrrwwnffirgcngeos.supabase.co
+SUPABASE_ANON_KEY=your_supabase_anon_key
+ALLOWED_ORIGINS=https://ezyum.com,http://localhost:3000
 ```
 
-## 🧪 Testing
+### 4. Vercel Environment Variables
 
-### Test Development
-1. Start your local servers
+In your Vercel dashboard, set these environment variables:
+
+#### **Frontend Variables**
+```
+VITE_SUPABASE_URL=https://whclrrwwnffirgcngeos.supabase.co
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_SITE_URL=https://ezyum.com
+```
+
+#### **Backend Variables**
+```
+SUPABASE_URL=https://whclrrwwnffirgcngeos.supabase.co
+SUPABASE_ANON_KEY=your_supabase_anon_key
+ALLOWED_ORIGINS=https://ezyum.com
+```
+
+## 🔍 Testing the Configuration
+
+### Local Testing
+1. Start your local server: `npm run dev`
 2. Go to `http://localhost:3000`
-3. Try signing in with Google
-4. Should redirect to `http://localhost:3000/auth/callback`
+3. Click "Sign in with Google"
+4. Should redirect to `https://ezyum.com/auth/callback` after Google auth
 
-### Test Production
-1. Deploy to Vercel
-2. Go to `https://ezyum.com`
-3. Try signing in with Google
-4. Should redirect to `https://ezyum.com/auth/callback`
+### Production Testing
+1. Go to `https://ezyum.com`
+2. Click "Sign in with Google"
+3. Should redirect to `https://ezyum.com/auth/callback` after Google auth
 
 ## 🚨 Common Issues
 
-### Issue 1: Still redirecting to localhost
-**Solution:**
-- Check that Supabase redirect URLs include your production domain
-- Verify `VITE_SITE_URL` is set correctly in Vercel
-- Clear browser cache and cookies
+### Issue: Still redirecting to localhost
+**Solution**: Check that `VITE_SITE_URL=https://ezyum.com` is set in your environment variables
 
-### Issue 2: "Invalid redirect URL" error
-**Solution:**
-- Add your exact production URL to Supabase redirect URLs
-- Include both with and without trailing slash
-- Wait a few minutes for changes to propagate
+### Issue: "Invalid redirect URL" error
+**Solution**: Add `https://ezyum.com/auth/callback` to your Supabase redirect URLs
 
-### Issue 3: Google OAuth not working
-**Solution:**
-- Verify Google OAuth is enabled in Supabase
-- Check that Google OAuth client ID and secret are set
-- Ensure authorized domains include your production domain
+### Issue: Google OAuth error
+**Solution**: Add `https://ezyum.com/auth/callback` to your Google OAuth authorized redirect URIs
 
-## 📱 Mobile Considerations
+## 📱 Mobile Testing
 
-For mobile apps or PWA, you might also need:
-```
-https://ezyum.com/auth/callback
-https://ezyum.com/
-```
+The app should now work correctly on mobile devices:
+- Access from phone: `https://ezyum.com`
+- Sign in with Google
+- Should redirect back to `https://ezyum.com` (not localhost)
 
-## 🔍 Debugging
+## 🔧 Debug Information
 
-### Check Current Configuration
-In browser console, look for:
-```
-🔐 Auth redirect URL: https://ezyum.com/auth/callback
-```
+The app now includes comprehensive debugging. Check the browser console for:
+- `🔍 Auth URL Detection:` - Shows what domain is being detected
+- `✅ Using VITE_SITE_URL:` - Confirms the environment variable is being used
+- `🔐 Auth redirect URL:` - Shows the final redirect URL being sent to Supabase
 
-### Verify Supabase Settings
-1. Go to Supabase Dashboard
-2. Authentication → Settings
-3. Check Site URL and Redirect URLs
-4. Ensure they match your production domain
+## ✅ Verification Checklist
 
-## 🚀 Deployment Checklist
-
-- [ ] Supabase Site URL set to production domain
-- [ ] Redirect URLs include production domain
-- [ ] `VITE_SITE_URL` environment variable set in Vercel
-- [ ] Google OAuth configured in Supabase
-- [ ] Test sign-in flow in production
-- [ ] Verify redirect works correctly
+- [ ] Supabase Site URL set to `https://ezyum.com`
+- [ ] Supabase Redirect URLs include `https://ezyum.com/auth/callback`
+- [ ] Google OAuth redirect URIs include `https://ezyum.com/auth/callback`
+- [ ] `VITE_SITE_URL=https://ezyum.com` in environment variables
+- [ ] Local testing redirects to `ezyum.com`
+- [ ] Mobile testing redirects to `ezyum.com`
+- [ ] Production testing works correctly
