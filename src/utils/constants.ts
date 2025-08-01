@@ -111,6 +111,55 @@ export const SUCCESS_MESSAGES = {
 // Development flags
 export const IS_OFFLINE_MODE = import.meta.env.VITE_OFFLINE_MODE === 'true';
 
+/**
+ * Get the correct base URL for authentication redirects
+ * Handles mobile devices, different domains, and development vs production
+ */
+export const getAuthBaseUrl = (): string => {
+  // Check for environment variable first
+  if (import.meta.env.VITE_SITE_URL) {
+    return import.meta.env.VITE_SITE_URL;
+  }
+
+  const isDev = import.meta.env.DEV;
+
+  if (isDev) {
+    return 'http://localhost:3000';
+  }
+
+  // In production, determine the correct domain
+  const currentHostname = window.location.hostname;
+  const currentOrigin = window.location.origin;
+  const userAgent = navigator.userAgent.toLowerCase();
+
+  // Check if this is a mobile device
+  const isMobile = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
+
+  // Known production domains
+  if (currentHostname === 'ezyum.com' || currentHostname === 'www.ezyum.com') {
+    return `https://${currentHostname}`;
+  }
+
+  // Vercel deployments
+  if (currentHostname.includes('vercel.app')) {
+    return currentOrigin;
+  }
+
+  // Local development (fallback)
+  if (currentHostname === 'localhost' || currentHostname === '127.0.0.1') {
+    return 'http://localhost:3000';
+  }
+
+  // For mobile devices, if we can't determine the domain, default to ezyum.com
+  if (isMobile && (currentHostname === '' || currentHostname === 'localhost')) {
+    console.log('📱 Mobile device detected, using default ezyum.com domain');
+    return 'https://ezyum.com';
+  }
+
+  // Default fallback to ezyum.com
+  return 'https://ezyum.com';
+};
+
 // Mock data for offline development
 export const MOCK_RECIPES = [
   {

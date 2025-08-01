@@ -1,6 +1,7 @@
 import { AuthChangeEvent, Session, User } from '@supabase/supabase-js';
 import { create } from 'zustand';
 import { supabase } from '../api/supabase';
+import { getAuthBaseUrl } from '../utils/constants';
 
 interface AuthState {
   user: User | null;
@@ -16,23 +17,18 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   signInWithGoogle: async () => {
     try {
-      // Determine the correct redirect URL for both development and production
-      const isDev = import.meta.env.DEV;
-      let baseUrl: string;
-
-      // Check for environment variable first
-      if (import.meta.env.VITE_SITE_URL) {
-        baseUrl = import.meta.env.VITE_SITE_URL;
-      } else if (isDev) {
-        baseUrl = 'http://localhost:3000';
-      } else {
-        // In production, use the current domain or fallback to ezyum.com
-        baseUrl = window.location.origin || 'https://ezyum.com';
-      }
-
+      // Use the utility function to get the correct base URL
+      const baseUrl = getAuthBaseUrl();
       const redirectUrl = `${baseUrl}/auth/callback`;
 
       console.log('🔐 Auth redirect URL:', redirectUrl);
+      console.log('📱 Device info:', {
+        userAgent: navigator.userAgent,
+        hostname: window.location.hostname,
+        origin: window.location.origin,
+        isDev: import.meta.env.DEV,
+        baseUrl
+      });
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
