@@ -91,7 +91,7 @@ module.exports = {
     'switch-colon-spacing': ['error', { after: true, before: false }],
     'template-tag-spacing': ['error', 'never'],
     'unicode-bom': ['error', 'never'],
-    'wrap-regex': 'error',
+    'wrap-regex': 'warn',
     'arrow-body-style': 'off',
     'arrow-parens': 'off',
     'constructor-super': 'error',

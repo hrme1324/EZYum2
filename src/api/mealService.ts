@@ -97,7 +97,7 @@ export class MealService {
       let recipeId = meal.recipe_id;
 
       // If recipe_id is a MealDB ID (numeric string), we need to find the corresponding recipe in our database
-      if (recipeId && (/^\d+$/).test(recipeId)) {
+      if (recipeId && /(^\d+$)/.test(recipeId)) {
         // This is a MealDB ID, find the corresponding recipe in our database
         const { data: recipeData } = await supabase
           .from('recipes')
