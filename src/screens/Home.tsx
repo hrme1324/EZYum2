@@ -72,10 +72,10 @@ const Home: React.FC = () => {
               className="bg-white p-4 rounded-xl border border-gray-200 text-center hover:border-coral-blush transition-colors group"
               onClick={() => handleQuickAction(action.path)}
             >
-              <div className={`w-12 h-12 ${action.color} rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform`}>
-                <div className="text-white">
-                  {action.icon}
-                </div>
+              <div
+                className={`w-12 h-12 ${action.color} rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform`}
+              >
+                <div className="text-white">{action.icon}</div>
               </div>
               <h3 className="font-medium text-rich-charcoal mb-1">{action.title}</h3>
               <p className="text-xs text-soft-taupe">{action.description}</p>

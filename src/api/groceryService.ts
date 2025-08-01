@@ -51,13 +51,11 @@ export class GroceryService {
       }
 
       // Create new active list
-      const { error } = await supabase
-        .from('grocery_lists')
-        .insert({
-          user_id: userId,
-          items: items,
-          status: 'active',
-        });
+      const { error } = await supabase.from('grocery_lists').insert({
+        user_id: userId,
+        items: items,
+        status: 'active',
+      });
 
       if (error) {
         console.error('Error saving grocery list:', error);
@@ -129,7 +127,7 @@ export class GroceryService {
   static async clearCompletedItems(userId: string): Promise<boolean> {
     try {
       const currentItems = await this.getGroceryList(userId);
-      const updatedItems = currentItems.filter(item => !item.checked);
+      const updatedItems = currentItems.filter((item) => !item.checked);
       return await this.saveGroceryList(userId, updatedItems);
     } catch (error) {
       console.error('Error clearing completed items:', error);

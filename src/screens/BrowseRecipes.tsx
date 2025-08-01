@@ -39,13 +39,15 @@ const BrowseRecipes: React.FC = () => {
       ]);
 
       const validRecipes = randomRecipes
-        .filter(recipe => recipe !== null)
+        .filter((recipe) => recipe !== null)
         .map((recipe: any) => ({
           id: recipe.id,
           name: recipe.name,
           category: recipe.category,
           area: recipe.area,
-          instructions: Array.isArray(recipe.instructions) ? recipe.instructions.join('\n') : recipe.instructions,
+          instructions: Array.isArray(recipe.instructions)
+            ? recipe.instructions.join('\n')
+            : recipe.instructions,
           image: recipe.image,
           tags: recipe.tags,
           ingredients: recipe.ingredients,
@@ -78,7 +80,9 @@ const BrowseRecipes: React.FC = () => {
         name: recipe.name,
         category: recipe.category,
         area: recipe.area,
-        instructions: Array.isArray(recipe.instructions) ? recipe.instructions.join('\n') : recipe.instructions,
+        instructions: Array.isArray(recipe.instructions)
+          ? recipe.instructions.join('\n')
+          : recipe.instructions,
         image: recipe.image,
         tags: recipe.tags,
         ingredients: recipe.ingredients,
@@ -127,12 +131,14 @@ const BrowseRecipes: React.FC = () => {
     }
   };
 
-  const filteredRecipes = selectedCategory === 'all'
-    ? recipes
-    : recipes.filter(recipe =>
-        recipe.category?.toLowerCase().includes(selectedCategory.toLowerCase()) ||
-        recipe.name.toLowerCase().includes(selectedCategory.toLowerCase())
-      );
+  const filteredRecipes =
+    selectedCategory === 'all'
+      ? recipes
+      : recipes.filter(
+          (recipe) =>
+            recipe.category?.toLowerCase().includes(selectedCategory.toLowerCase()) ||
+            recipe.name.toLowerCase().includes(selectedCategory.toLowerCase())
+        );
 
   return (
     <div className="min-h-screen bg-off-white p-4">
@@ -196,7 +202,9 @@ const BrowseRecipes: React.FC = () => {
               <div className="text-center py-12">
                 <ChefHat className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-rich-charcoal mb-2">No recipes found</h3>
-                <p className="text-soft-taupe">Try adjusting your search or browse our random recipes</p>
+                <p className="text-soft-taupe">
+                  Try adjusting your search or browse our random recipes
+                </p>
                 <button
                   onClick={loadRandomRecipes}
                   className="mt-4 bg-coral-blush text-white px-6 py-2 rounded-lg hover:bg-opacity-90 transition-colors"
@@ -225,11 +233,7 @@ const BrowseRecipes: React.FC = () => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.1 }}
                     >
-                      <RecipeCard
-                        recipe={recipe}
-                        onSave={handleSaveRecipe}
-                        showActions={true}
-                      />
+                      <RecipeCard recipe={recipe} onSave={handleSaveRecipe} showActions={true} />
                     </motion.div>
                   ))}
                 </div>

@@ -1,13 +1,5 @@
 import { motion } from 'framer-motion';
-import {
-    ChefHat,
-    Edit,
-    Globe,
-    Play,
-    Plus,
-    Trash2,
-    X
-} from 'lucide-react';
+import { ChefHat, Edit, Globe, Play, Plus, Trash2, X } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { RecipeService } from '../api/recipeService';
@@ -42,7 +34,7 @@ const MyRecipes: React.FC = () => {
     servings: 4,
     difficulty: 'Easy' as 'Easy' | 'Medium' | 'Hard',
     cookingTime: '30 min',
-    image: ''
+    image: '',
   });
 
   useEffect(() => {
@@ -58,14 +50,14 @@ const MyRecipes: React.FC = () => {
       setLoading(true);
       const userRecipes = await RecipeService.getUserRecipes();
       // Transform UserRecipe to MyRecipe format
-      const transformedRecipes: MyRecipe[] = (userRecipes || []).map(recipe => ({
+      const transformedRecipes: MyRecipe[] = (userRecipes || []).map((recipe) => ({
         ...recipe,
         difficulty: recipe.difficulty || 'Easy',
         tags: recipe.tags || [],
         videoUrl: recipe.videoUrl || '',
         websiteUrl: recipe.websiteUrl || '',
         prepTime: '',
-        servings: 4
+        servings: 4,
       }));
       setRecipes(transformedRecipes);
     } catch (error) {
@@ -83,8 +75,8 @@ const MyRecipes: React.FC = () => {
       const recipeData = {
         ...newRecipe,
         user_id: user.id,
-        ingredients: newRecipe.ingredients.filter(ing => ing.name.trim() && ing.measure.trim()),
-        tags: newRecipe.tags.filter(tag => tag.trim())
+        ingredients: newRecipe.ingredients.filter((ing) => ing.name.trim() && ing.measure.trim()),
+        tags: newRecipe.tags.filter((tag) => tag.trim()),
       };
 
       const success = await RecipeService.saveRecipe(recipeData);
@@ -110,8 +102,8 @@ const MyRecipes: React.FC = () => {
         ...newRecipe,
         id: editingRecipe.id,
         user_id: user.id,
-        ingredients: newRecipe.ingredients.filter(ing => ing.name.trim() && ing.measure.trim()),
-        tags: newRecipe.tags.filter(tag => tag.trim())
+        ingredients: newRecipe.ingredients.filter((ing) => ing.name.trim() && ing.measure.trim()),
+        tags: newRecipe.tags.filter((tag) => tag.trim()),
       };
 
       const success = await RecipeService.updateRecipe(editingRecipe.id, recipeData);
@@ -161,7 +153,7 @@ const MyRecipes: React.FC = () => {
       servings: 4,
       difficulty: 'Easy',
       cookingTime: '30 min',
-      image: ''
+      image: '',
     });
   };
 
@@ -180,56 +172,60 @@ const MyRecipes: React.FC = () => {
       servings: recipe.servings || 4,
       difficulty: recipe.difficulty || 'Easy',
       cookingTime: recipe.cookingTime || '30 min',
-      image: recipe.image || ''
+      image: recipe.image || '',
     });
     setShowCreateForm(true);
   };
 
   const addIngredient = () => {
-    setNewRecipe(prev => ({
+    setNewRecipe((prev) => ({
       ...prev,
-      ingredients: [...prev.ingredients, { name: '', measure: '' }]
+      ingredients: [...prev.ingredients, { name: '', measure: '' }],
     }));
   };
 
   const removeIngredient = (index: number) => {
-    setNewRecipe(prev => ({
+    setNewRecipe((prev) => ({
       ...prev,
-      ingredients: prev.ingredients.filter((_, i) => i !== index)
+      ingredients: prev.ingredients.filter((_, i) => i !== index),
     }));
   };
 
   const updateIngredient = (index: number, field: 'name' | 'measure', value: string) => {
-    setNewRecipe(prev => ({
+    setNewRecipe((prev) => ({
       ...prev,
       ingredients: prev.ingredients.map((ing, i) =>
         i === index ? { ...ing, [field]: value } : ing
-      )
+      ),
     }));
   };
 
   const addTag = (tag: string) => {
     if (tag.trim() && !newRecipe.tags.includes(tag.trim())) {
-      setNewRecipe(prev => ({
+      setNewRecipe((prev) => ({
         ...prev,
-        tags: [...prev.tags, tag.trim()]
+        tags: [...prev.tags, tag.trim()],
       }));
     }
   };
 
   const removeTag = (tagToRemove: string) => {
-    setNewRecipe(prev => ({
+    setNewRecipe((prev) => ({
       ...prev,
-      tags: prev.tags.filter(tag => tag !== tagToRemove)
+      tags: prev.tags.filter((tag) => tag !== tagToRemove),
     }));
   };
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case 'Easy': return 'text-green-600 bg-green-100';
-      case 'Medium': return 'text-yellow-600 bg-yellow-100';
-      case 'Hard': return 'text-red-600 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
+      case 'Easy':
+        return 'text-green-600 bg-green-100';
+      case 'Medium':
+        return 'text-yellow-600 bg-yellow-100';
+      case 'Hard':
+        return 'text-red-600 bg-red-100';
+      default:
+        return 'text-gray-600 bg-gray-100';
     }
   };
 
@@ -296,7 +292,9 @@ const MyRecipes: React.FC = () => {
               <div className="space-y-4">
                 {/* Basic Info */}
                 <div>
-                  <label className="block text-sm font-medium text-rich-charcoal mb-2">Recipe Name *</label>
+                  <label className="block text-sm font-medium text-rich-charcoal mb-2">
+                    Recipe Name *
+                  </label>
                   <input
                     type="text"
                     value={newRecipe.name}
@@ -308,7 +306,9 @@ const MyRecipes: React.FC = () => {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-sm font-medium text-rich-charcoal mb-2">Category</label>
+                    <label className="block text-sm font-medium text-rich-charcoal mb-2">
+                      Category
+                    </label>
                     <input
                       type="text"
                       value={newRecipe.category}
@@ -318,7 +318,9 @@ const MyRecipes: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-rich-charcoal mb-2">Cuisine</label>
+                    <label className="block text-sm font-medium text-rich-charcoal mb-2">
+                      Cuisine
+                    </label>
                     <input
                       type="text"
                       value={newRecipe.area}
@@ -332,7 +334,9 @@ const MyRecipes: React.FC = () => {
                 {/* Time and Difficulty */}
                 <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-sm font-medium text-rich-charcoal mb-2">Prep Time</label>
+                    <label className="block text-sm font-medium text-rich-charcoal mb-2">
+                      Prep Time
+                    </label>
                     <input
                       type="text"
                       value={newRecipe.prepTime}
@@ -342,7 +346,9 @@ const MyRecipes: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-rich-charcoal mb-2">Cook Time</label>
+                    <label className="block text-sm font-medium text-rich-charcoal mb-2">
+                      Cook Time
+                    </label>
                     <input
                       type="text"
                       value={newRecipe.cookingTime}
@@ -352,10 +358,17 @@ const MyRecipes: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-rich-charcoal mb-2">Difficulty</label>
+                    <label className="block text-sm font-medium text-rich-charcoal mb-2">
+                      Difficulty
+                    </label>
                     <select
                       value={newRecipe.difficulty}
-                      onChange={(e) => setNewRecipe({ ...newRecipe, difficulty: e.target.value as 'Easy' | 'Medium' | 'Hard' })}
+                      onChange={(e) =>
+                        setNewRecipe({
+                          ...newRecipe,
+                          difficulty: e.target.value as 'Easy' | 'Medium' | 'Hard',
+                        })
+                      }
                       className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-coral-blush focus:border-transparent"
                     >
                       <option value="Easy">Easy</option>
@@ -366,11 +379,15 @@ const MyRecipes: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-rich-charcoal mb-2">Servings</label>
+                  <label className="block text-sm font-medium text-rich-charcoal mb-2">
+                    Servings
+                  </label>
                   <input
                     type="number"
                     value={newRecipe.servings}
-                    onChange={(e) => setNewRecipe({ ...newRecipe, servings: parseInt(e.target.value) || 4 })}
+                    onChange={(e) =>
+                      setNewRecipe({ ...newRecipe, servings: parseInt(e.target.value) || 4 })
+                    }
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-coral-blush focus:border-transparent"
                     min="1"
                   />
@@ -378,7 +395,9 @@ const MyRecipes: React.FC = () => {
 
                 {/* Ingredients */}
                 <div>
-                  <label className="block text-sm font-medium text-rich-charcoal mb-2">Ingredients *</label>
+                  <label className="block text-sm font-medium text-rich-charcoal mb-2">
+                    Ingredients *
+                  </label>
                   <div className="space-y-2">
                     {newRecipe.ingredients.map((ingredient, index) => (
                       <div key={index} className="flex gap-2">
@@ -417,7 +436,9 @@ const MyRecipes: React.FC = () => {
 
                 {/* Instructions */}
                 <div>
-                  <label className="block text-sm font-medium text-rich-charcoal mb-2">Instructions *</label>
+                  <label className="block text-sm font-medium text-rich-charcoal mb-2">
+                    Instructions *
+                  </label>
                   <textarea
                     value={newRecipe.instructions}
                     onChange={(e) => setNewRecipe({ ...newRecipe, instructions: e.target.value })}
@@ -460,7 +481,9 @@ const MyRecipes: React.FC = () => {
                     />
                     <button
                       onClick={() => {
-                        const input = document.querySelector('input[placeholder="Add tag..."]') as HTMLInputElement;
+                        const input = document.querySelector(
+                          'input[placeholder="Add tag..."]'
+                        ) as HTMLInputElement;
                         if (input && input.value.trim()) {
                           addTag(input.value);
                           input.value = '';
@@ -505,7 +528,9 @@ const MyRecipes: React.FC = () => {
 
                 {/* Image URL */}
                 <div>
-                  <label className="block text-sm font-medium text-rich-charcoal mb-2">Image URL</label>
+                  <label className="block text-sm font-medium text-rich-charcoal mb-2">
+                    Image URL
+                  </label>
                   <input
                     type="url"
                     value={newRecipe.image}
@@ -586,7 +611,9 @@ const MyRecipes: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(recipe.difficulty)}`}>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(recipe.difficulty)}`}
+                    >
                       {recipe.difficulty}
                     </span>
                   </div>
@@ -596,7 +623,11 @@ const MyRecipes: React.FC = () => {
                 <div className="space-y-2 mb-3">
                   {recipe.ingredients && recipe.ingredients.length > 0 && (
                     <div className="text-sm text-soft-taupe">
-                      <strong>Ingredients:</strong> {recipe.ingredients.slice(0, 3).map(ing => `${ing.name} (${ing.measure})`).join(', ')}
+                      <strong>Ingredients:</strong>{' '}
+                      {recipe.ingredients
+                        .slice(0, 3)
+                        .map((ing) => `${ing.name} (${ing.measure})`)
+                        .join(', ')}
                       {recipe.ingredients.length > 3 && '...'}
                     </div>
                   )}

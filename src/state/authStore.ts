@@ -14,7 +14,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   isLoading: true,
 
-  signInWithGoogle: async() => {
+  signInWithGoogle: async () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -33,7 +33,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  signOut: async() => {
+  signOut: async () => {
     try {
       await supabase.auth.signOut();
       set({ user: null });

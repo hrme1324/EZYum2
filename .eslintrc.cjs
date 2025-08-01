@@ -1,18 +1,12 @@
 module.exports = {
   root: true,
   env: { browser: true, es2020: true, node: true },
-  extends: [
-    'eslint:recommended',
-    'plugin:react-hooks/recommended',
-  ],
+  extends: ['eslint:recommended', 'plugin:react-hooks/recommended'],
   ignorePatterns: ['dist', '.eslintrc.cjs'],
   parser: '@typescript-eslint/parser',
   plugins: ['react-refresh'],
   rules: {
-    'react-refresh/only-export-components': [
-      'warn',
-      { allowConstantExport: true },
-    ],
+    'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
     // Critical error checking rules
     'no-unused-vars': 'warn',
     'no-console': 'warn',
@@ -27,9 +21,9 @@ module.exports = {
     'no-irregular-whitespace': 'error',
     'no-trailing-spaces': 'error',
     'eol-last': 'error',
-    'semi': 'error',
-    'quotes': ['error', 'single', { avoidEscape: true }],
-    'indent': 'off',
+    semi: 'error',
+    quotes: ['error', 'single', { avoidEscape: true }],
+    indent: 'off',
     'comma-dangle': 'off',
     'object-curly-spacing': ['error', 'always'],
     'array-bracket-spacing': ['error', 'never'],
@@ -45,7 +39,7 @@ module.exports = {
     'arrow-spacing': 'error',
     'block-spacing': 'error',
     'brace-style': 'off',
-    'camelcase': ['error', { properties: 'never' }],
+    camelcase: ['error', { properties: 'never' }],
     'comma-style': ['error', 'last'],
     'computed-property-spacing': ['error', 'never'],
     'func-call-spacing': ['error', 'never'],
@@ -125,4 +119,4 @@ module.exports = {
     'template-curly-spacing': ['error', 'never'],
     'yield-star-spacing': ['error', 'after'],
   },
-}
+};

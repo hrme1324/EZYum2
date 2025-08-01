@@ -1,5 +1,15 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronRight, Clock, Gamepad2, ShoppingBag, SkipForward, Sparkles, Timer, Trophy, User } from 'lucide-react';
+import {
+  ChevronRight,
+  Clock,
+  Gamepad2,
+  ShoppingBag,
+  SkipForward,
+  Sparkles,
+  Timer,
+  Trophy,
+  User,
+} from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
@@ -28,9 +38,24 @@ const Onboarding: React.FC = () => {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const staples = [
-    'Eggs', 'Rice', 'Pasta', 'Beans', 'Chicken', 'Ground Beef',
-    'Onions', 'Garlic', 'Tomatoes', 'Cheese', 'Bread', 'Milk',
-    'Olive Oil', 'Butter', 'Flour', 'Sugar', 'Salt', 'Pepper'
+    'Eggs',
+    'Rice',
+    'Pasta',
+    'Beans',
+    'Chicken',
+    'Ground Beef',
+    'Onions',
+    'Garlic',
+    'Tomatoes',
+    'Cheese',
+    'Bread',
+    'Milk',
+    'Olive Oil',
+    'Butter',
+    'Flour',
+    'Sugar',
+    'Salt',
+    'Pepper',
   ];
 
   const meals: Meal[] = [
@@ -56,7 +81,7 @@ const Onboarding: React.FC = () => {
     { id: 'd3', name: 'Grilled Salmon', category: 'dinner', time: 35, difficulty: 'hard' },
     { id: 'd4', name: 'Taco Night', category: 'dinner', time: 28, difficulty: 'medium' },
     { id: 'd5', name: 'Sheet Pan Dinner', category: 'dinner', time: 40, difficulty: 'medium' },
-    { id: 'd6', name: 'Risotto', category: 'dinner', time: 45, difficulty: 'hard' }
+    { id: 'd6', name: 'Risotto', category: 'dinner', time: 45, difficulty: 'hard' },
   ];
 
   // Calculate time savings based on realistic meal prep times
@@ -65,7 +90,7 @@ const Onboarding: React.FC = () => {
     const plannedMealTime = budget;
     const weeklyMeals = 21; // 3 meals × 7 days
     // Lower budget means more time savings (more efficient planning)
-    const weeklySavings = (avgMealPrepTime - plannedMealTime) * weeklyMeals / 60; // Convert to hours
+    const weeklySavings = ((avgMealPrepTime - plannedMealTime) * weeklyMeals) / 60; // Convert to hours
     return Math.max(0, Math.round(weeklySavings));
   };
 
@@ -103,16 +128,17 @@ const Onboarding: React.FC = () => {
   const handleMealSelect = (meal: Meal) => {
     if (gameState !== 'playing') return;
 
-    const existingMeal = selectedMeals.find(m => m.category === meal.category);
+    const existingMeal = selectedMeals.find((m) => m.category === meal.category);
     if (existingMeal) {
-      setSelectedMeals(prev => prev.map(m => m.category === meal.category ? meal : m));
+      setSelectedMeals((prev) => prev.map((m) => (m.category === meal.category ? meal : m)));
     } else {
-      setSelectedMeals(prev => [...prev, meal]);
+      setSelectedMeals((prev) => [...prev, meal]);
     }
 
     // Calculate score based on time and difficulty
     const timeBonus = Math.max(0, 30 - meal.time);
-    const difficultyBonus = meal.difficulty === 'easy' ? 10 : meal.difficulty === 'medium' ? 20 : 30;
+    const difficultyBonus =
+      meal.difficulty === 'easy' ? 10 : meal.difficulty === 'medium' ? 20 : 30;
     const newScore = score + timeBonus + difficultyBonus;
     setScore(newScore);
 
@@ -123,7 +149,7 @@ const Onboarding: React.FC = () => {
   };
 
   const getAvailableMeals = (category: 'breakfast' | 'lunch' | 'dinner') => {
-    return meals.filter(meal => meal.category === category);
+    return meals.filter((meal) => meal.category === category);
   };
 
   // Save user preferences when onboarding is completed
@@ -184,7 +210,7 @@ const Onboarding: React.FC = () => {
                 <span className="font-medium">Save {timeSavings} hours per week!</span>
               </div>
               <p className="text-sm text-soft-taupe">
-                That's {Math.round(timeSavings * 60 / 7)} minutes saved per day
+                That's {Math.round((timeSavings * 60) / 7)} minutes saved per day
               </p>
             </div>
           </div>
@@ -209,9 +235,7 @@ const Onboarding: React.FC = () => {
                 whileTap={{ scale: 0.95 }}
                 onClick={() => {
                   setSelectedStaples((prev) =>
-                    prev.includes(staple)
-                      ? prev.filter((s) => s !== staple)
-                      : [...prev, staple]
+                    prev.includes(staple) ? prev.filter((s) => s !== staple) : [...prev, staple]
                   );
                 }}
                 className={`p-3 rounded-lg border-2 transition-all duration-200 ${
@@ -226,9 +250,7 @@ const Onboarding: React.FC = () => {
           </div>
           {selectedStaples.length > 0 && (
             <div className="text-center">
-              <p className="text-sm text-soft-taupe">
-                Selected {selectedStaples.length} staples
-              </p>
+              <p className="text-sm text-soft-taupe">Selected {selectedStaples.length} staples</p>
             </div>
           )}
         </div>
@@ -261,8 +283,12 @@ const Onboarding: React.FC = () => {
                 <h4 className="text-xl font-bold mb-2">Ready to save time?</h4>
                 <p className="text-sm opacity-90">Plan 3 meals in 30 seconds or less!</p>
                 <div className="mt-3 flex justify-center space-x-2">
-                  <span className="text-xs bg-white bg-opacity-20 px-2 py-1 rounded">🏆 Fastest Time</span>
-                  <span className="text-xs bg-white bg-opacity-20 px-2 py-1 rounded">⚡ Quick Planning</span>
+                  <span className="text-xs bg-white bg-opacity-20 px-2 py-1 rounded">
+                    🏆 Fastest Time
+                  </span>
+                  <span className="text-xs bg-white bg-opacity-20 px-2 py-1 rounded">
+                    ⚡ Quick Planning
+                  </span>
                 </div>
               </div>
               <motion.button
@@ -318,7 +344,7 @@ const Onboarding: React.FC = () => {
                         {category === 'dinner' && '🌙'}
                         {category}
                       </h4>
-                      {selectedMeals.some(m => m.category === category) && (
+                      {selectedMeals.some((m) => m.category === category) && (
                         <motion.div
                           initial={{ scale: 0 }}
                           animate={{ scale: 1 }}
@@ -335,15 +361,17 @@ const Onboarding: React.FC = () => {
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                           onClick={() => handleMealSelect(meal)}
-                          disabled={selectedMeals.some(m => m.category === category)}
+                          disabled={selectedMeals.some((m) => m.category === category)}
                           className={`p-3 rounded-lg text-sm transition-all ${
-                            selectedMeals.some(m => m.category === category)
+                            selectedMeals.some((m) => m.category === category)
                               ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                               : 'bg-gradient-to-r from-sage-leaf to-green-400 hover:from-coral-blush hover:to-orange-400 hover:text-white text-rich-charcoal shadow-sm'
                           }`}
                         >
                           <div className="font-medium">{meal.name}</div>
-                          <div className="text-xs opacity-75">{meal.time}min • {meal.difficulty}</div>
+                          <div className="text-xs opacity-75">
+                            {meal.time}min • {meal.difficulty}
+                          </div>
                         </motion.button>
                       ))}
                     </div>
@@ -362,7 +390,7 @@ const Onboarding: React.FC = () => {
               <motion.div
                 animate={{
                   rotate: [0, 10, -10, 0],
-                  scale: [1, 1.1, 1]
+                  scale: [1, 1.1, 1],
                 }}
                 transition={{ duration: 2, repeat: Infinity }}
                 className="text-6xl mb-4"
@@ -370,13 +398,12 @@ const Onboarding: React.FC = () => {
                 {gameTime > 0 ? '🎉' : '⏰'}
               </motion.div>
               <h4 className="text-2xl font-bold text-coral-blush">
-                {gameTime > 0 ? 'Challenge Complete!' : 'Time\'s Up!'}
+                {gameTime > 0 ? 'Challenge Complete!' : "Time's Up!"}
               </h4>
               <p className="text-soft-taupe">
                 {gameTime > 0
                   ? `You finished in ${30 - gameTime} seconds!`
-                  : 'Great effort! Try again for a better time.'
-                }
+                  : 'Great effort! Try again for a better time.'}
               </p>
               <motion.div
                 initial={{ y: 20, opacity: 0 }}
@@ -387,8 +414,12 @@ const Onboarding: React.FC = () => {
                 <p className="font-bold text-lg">Final Score: {score}</p>
                 <p className="text-sm opacity-90">Max Streak: {streak}</p>
                 <div className="mt-2 flex justify-center space-x-4 text-xs">
-                  <span className="bg-white bg-opacity-20 px-2 py-1 rounded">Speed: {30 - gameTime}s</span>
-                  <span className="bg-white bg-opacity-20 px-2 py-1 rounded">Accuracy: {Math.round((score / 300) * 100)}%</span>
+                  <span className="bg-white bg-opacity-20 px-2 py-1 rounded">
+                    Speed: {30 - gameTime}s
+                  </span>
+                  <span className="bg-white bg-opacity-20 px-2 py-1 rounded">
+                    Accuracy: {Math.round((score / 300) * 100)}%
+                  </span>
                 </div>
               </motion.div>
               <motion.button
@@ -481,9 +512,7 @@ const Onboarding: React.FC = () => {
             </button>
           </div>
 
-          <div className="flex items-center justify-center mb-6">
-            {steps[currentStep].icon}
-          </div>
+          <div className="flex items-center justify-center mb-6">{steps[currentStep].icon}</div>
 
           <div className="text-center mb-8">
             <h2 className="text-3xl font-lora mb-2">{steps[currentStep].title}</h2>

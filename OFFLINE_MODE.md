@@ -3,13 +3,17 @@
 ## **How to Enable Offline Mode**
 
 ### **Option 1: Environment Variable**
+
 Add this to your `.env.local` file:
+
 ```
 VITE_OFFLINE_MODE=true
 ```
 
 ### **Option 2: Temporary Testing**
+
 You can temporarily set the flag in `src/utils/constants.ts`:
+
 ```typescript
 export const IS_OFFLINE_MODE = true; // Force offline mode
 ```
@@ -17,6 +21,7 @@ export const IS_OFFLINE_MODE = true; // Force offline mode
 ## **What Works Offline:**
 
 ### **✅ Fully Functional:**
+
 - **Navigation** - All screens and routing
 - **UI/UX** - Animations, forms, interactions
 - **Mock Data** - Sample recipes and meals
@@ -25,6 +30,7 @@ export const IS_OFFLINE_MODE = true; // Force offline mode
 - **My Meals** - Shows mock meal data
 
 ### **✅ Simulated Actions:**
+
 - **Save Recipe** - Shows success message (data not persisted)
 - **Delete Recipe** - Removes from UI temporarily
 - **Add Meal** - Shows success message (data not persisted)
@@ -33,11 +39,13 @@ export const IS_OFFLINE_MODE = true; // Force offline mode
 ## **What Doesn't Work Offline:**
 
 ### **❌ External APIs:**
+
 - **MealDB API** - No real recipe discovery
 - **Supabase Database** - No data persistence
 - **Supabase Auth** - No user authentication
 
 ### **❌ Data Persistence:**
+
 - All changes are temporary
 - Data resets when you refresh the page
 - No real user accounts or saved data
@@ -53,10 +61,12 @@ export const IS_OFFLINE_MODE = true; // Force offline mode
 ## **Mock Data Included:**
 
 ### **Sample Recipes:**
+
 - **Chicken Pasta** - Italian cuisine
 - **Greek Salad** - Mediterranean dish
 
 ### **Sample Meals:**
+
 - **Breakfast** - Chicken Pasta (planned)
 - **Lunch** - Greek Salad (cooked)
 

@@ -25,25 +25,27 @@ export class RecipeService {
         throw error;
       }
 
-      return recipes?.map(recipe => ({
-        id: recipe.id,
-        name: recipe.name,
-        category: recipe.category,
-        area: recipe.area,
-        instructions: recipe.instructions,
-        image: recipe.image,
-        tags: recipe.tags || [],
-        ingredients: recipe.ingredients || [],
-        videoUrl: recipe.video_url,
-        websiteUrl: recipe.website_url,
-        cookingTime: recipe.cooking_time,
-        difficulty: recipe.difficulty as 'Easy' | 'Medium' | 'Hard',
-        user_id: recipe.user_id,
-        source_type: recipe.source_type,
-        mealdb_id: recipe.mealdb_id,
-        created_at: recipe.created_at,
-        updated_at: recipe.updated_at,
-      })) || [];
+      return (
+        recipes?.map((recipe) => ({
+          id: recipe.id,
+          name: recipe.name,
+          category: recipe.category,
+          area: recipe.area,
+          instructions: recipe.instructions,
+          image: recipe.image,
+          tags: recipe.tags || [],
+          ingredients: recipe.ingredients || [],
+          videoUrl: recipe.video_url,
+          websiteUrl: recipe.website_url,
+          cookingTime: recipe.cooking_time,
+          difficulty: recipe.difficulty as 'Easy' | 'Medium' | 'Hard',
+          user_id: recipe.user_id,
+          source_type: recipe.source_type,
+          mealdb_id: recipe.mealdb_id,
+          created_at: recipe.created_at,
+          updated_at: recipe.updated_at,
+        })) || []
+      );
     } catch (error) {
       console.error('Error getting user recipes:', error);
       return [];
@@ -55,28 +57,28 @@ export class RecipeService {
    */
   static async saveRecipe(recipe: Omit<Recipe, 'id'>): Promise<boolean> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         throw new Error('User not authenticated');
       }
 
-      const { error } = await supabase
-        .from('recipes')
-        .insert({
-          user_id: user.id,
-          name: recipe.name,
-          category: recipe.category,
-          area: recipe.area,
-          instructions: recipe.instructions,
-          image: recipe.image,
-          tags: recipe.tags,
-          ingredients: recipe.ingredients,
-          video_url: recipe.videoUrl,
-          website_url: recipe.websiteUrl,
-          cooking_time: recipe.cookingTime,
-          difficulty: recipe.difficulty,
-          source_type: 'user',
-        });
+      const { error } = await supabase.from('recipes').insert({
+        user_id: user.id,
+        name: recipe.name,
+        category: recipe.category,
+        area: recipe.area,
+        instructions: recipe.instructions,
+        image: recipe.image,
+        tags: recipe.tags,
+        ingredients: recipe.ingredients,
+        video_url: recipe.videoUrl,
+        website_url: recipe.websiteUrl,
+        cooking_time: recipe.cookingTime,
+        difficulty: recipe.difficulty,
+        source_type: 'user',
+      });
 
       if (error) {
         console.error('Error saving recipe:', error);
@@ -95,29 +97,29 @@ export class RecipeService {
    */
   static async saveMealDBRecipe(recipe: Recipe, mealdbId: string): Promise<boolean> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         throw new Error('User not authenticated');
       }
 
-      const { error } = await supabase
-        .from('recipes')
-        .insert({
-          user_id: user.id,
-          name: recipe.name,
-          category: recipe.category,
-          area: recipe.area,
-          instructions: recipe.instructions,
-          image: recipe.image,
-          tags: recipe.tags,
-          ingredients: recipe.ingredients,
-          video_url: recipe.videoUrl,
-          website_url: recipe.websiteUrl,
-          cooking_time: recipe.cookingTime,
-          difficulty: recipe.difficulty,
-          source_type: 'mealdb',
-          mealdb_id: mealdbId,
-        });
+      const { error } = await supabase.from('recipes').insert({
+        user_id: user.id,
+        name: recipe.name,
+        category: recipe.category,
+        area: recipe.area,
+        instructions: recipe.instructions,
+        image: recipe.image,
+        tags: recipe.tags,
+        ingredients: recipe.ingredients,
+        video_url: recipe.videoUrl,
+        website_url: recipe.websiteUrl,
+        cooking_time: recipe.cookingTime,
+        difficulty: recipe.difficulty,
+        source_type: 'mealdb',
+        mealdb_id: mealdbId,
+      });
 
       if (error) {
         console.error('Error saving MealDB recipe:', error);
@@ -136,10 +138,7 @@ export class RecipeService {
    */
   static async deleteRecipe(recipeId: string): Promise<boolean> {
     try {
-      const { error } = await supabase
-        .from('recipes')
-        .delete()
-        .eq('id', recipeId);
+      const { error } = await supabase.from('recipes').delete().eq('id', recipeId);
 
       if (error) {
         console.error('Error deleting recipe:', error);
@@ -174,10 +173,7 @@ export class RecipeService {
 
       updateData.updated_at = new Date().toISOString();
 
-      const { error } = await supabase
-        .from('recipes')
-        .update(updateData)
-        .eq('id', recipeId);
+      const { error } = await supabase.from('recipes').update(updateData).eq('id', recipeId);
 
       if (error) {
         console.error('Error updating recipe:', error);
@@ -196,7 +192,9 @@ export class RecipeService {
    */
   static async isRecipeSaved(mealdbId: string): Promise<boolean> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return false;
 
       const { data, error } = await supabase
@@ -224,7 +222,9 @@ export class RecipeService {
    */
   static async getWeeklyRecipes(): Promise<UserRecipe[]> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return [];
 
       // Get the current week's meals
@@ -235,10 +235,12 @@ export class RecipeService {
 
       const { data: meals, error: mealsError } = await supabase
         .from('meals')
-        .select(`
+        .select(
+          `
           *,
           recipes (*)
-        `)
+        `
+        )
         .eq('user_id', user.id)
         .gte('date', startOfWeek.toISOString().split('T')[0])
         .lte('date', endOfWeek.toISOString().split('T')[0]);
@@ -250,7 +252,7 @@ export class RecipeService {
 
       // Extract recipes from meals
       const recipes: UserRecipe[] = [];
-      meals?.forEach(meal => {
+      meals?.forEach((meal) => {
         if (meal.recipes) {
           const recipe = meal.recipes as any;
           recipes.push({

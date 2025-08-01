@@ -5,6 +5,7 @@ A modern, AI-powered food planning and pantry management app built with React, T
 ## 🚀 Quick Start
 
 ### Frontend Setup
+
 ```bash
 # Install dependencies
 npm install
@@ -21,6 +22,7 @@ npm run dev
 ```
 
 ### Backend Setup (Optional - for AI features)
+
 ```bash
 # Navigate to backend directory
 cd server
@@ -43,6 +45,7 @@ npm run dev
 ## 🔧 Features
 
 ### ✅ Core Features
+
 - **User Authentication** - Google OAuth with Supabase
 - **Pantry Management** - Add, edit, delete ingredients
 - **Barcode Scanning** - Scan products with camera
@@ -51,6 +54,7 @@ npm run dev
 - **Responsive Design** - Works on mobile and desktop
 
 ### 🤖 AI Features (with backend)
+
 - **Recipe Suggestions** - AI-powered recipe recommendations
 - **Food Categorization** - Automatic ingredient classification
 - **Smart Search** - Enhanced recipe search
@@ -58,6 +62,7 @@ npm run dev
 ## 🛠️ Tech Stack
 
 ### Frontend
+
 - **React 18** - UI framework
 - **TypeScript** - Type safety
 - **Vite** - Build tool
@@ -67,6 +72,7 @@ npm run dev
 - **Zustand** - State management
 
 ### Backend
+
 - **Express.js** - API server
 - **Node.js** - Runtime
 - **OpenAI API** - AI recipe suggestions
@@ -74,6 +80,7 @@ npm run dev
 - **MealDB API** - Recipe database
 
 ### Database
+
 - **Supabase** - PostgreSQL database
 - **Row Level Security** - Data protection
 - **Real-time** - Live updates
@@ -96,12 +103,14 @@ npm run dev
 ## 🚀 Deployment
 
 ### Frontend (Vercel/Netlify)
+
 ```bash
 npm run build
 # Deploy dist/ folder
 ```
 
 ### Backend (Railway/Render)
+
 ```bash
 cd server
 npm start
@@ -111,6 +120,7 @@ npm start
 ## 🔧 Development
 
 ### Available Scripts
+
 ```bash
 npm run dev          # Start frontend dev server
 npm run build        # Build for production
@@ -119,6 +129,7 @@ npm run lint         # Run ESLint
 ```
 
 ### Backend Scripts
+
 ```bash
 cd server
 npm run dev          # Start backend with nodemon
@@ -155,6 +166,7 @@ MIT License - see LICENSE file for details.
 ## 🆘 Support
 
 For issues and questions:
+
 - Check the troubleshooting guide
 - Review the documentation
 - Open an issue on GitHub

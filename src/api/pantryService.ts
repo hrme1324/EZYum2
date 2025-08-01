@@ -28,7 +28,10 @@ export class PantryService {
   /**
    * Add a new pantry item
    */
-  static async addPantryItem(userId: string, item: Omit<PantryItem, 'id' | 'user_id' | 'created_at'>): Promise<PantryItem | null> {
+  static async addPantryItem(
+    userId: string,
+    item: Omit<PantryItem, 'id' | 'user_id' | 'created_at'>
+  ): Promise<PantryItem | null> {
     try {
       const { data, error } = await supabase
         .from('pantry_items')
@@ -58,7 +61,11 @@ export class PantryService {
   /**
    * Update a pantry item
    */
-  static async updatePantryItem(userId: string, itemId: string, updates: Partial<PantryItem>): Promise<PantryItem | null> {
+  static async updatePantryItem(
+    userId: string,
+    itemId: string,
+    updates: Partial<PantryItem>
+  ): Promise<PantryItem | null> {
     try {
       const { data, error } = await supabase
         .from('pantry_items')
@@ -115,17 +122,22 @@ export class PantryService {
       const items = await this.getPantryItems(userId);
 
       const today = new Date();
-      const expiringSoon = items.filter(item => {
+      const expiringSoon = items.filter((item) => {
         if (!item.expiration) return false;
         const expiration = new Date(item.expiration);
-        const diffDays = Math.ceil((expiration.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        const diffDays = Math.ceil(
+          (expiration.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+        );
         return diffDays <= 7 && diffDays >= 0;
       }).length;
 
-      const categories = items.reduce((acc, item) => {
-        acc[item.category] = (acc[item.category] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
+      const categories = items.reduce(
+        (acc, item) => {
+          acc[item.category] = (acc[item.category] || 0) + 1;
+          return acc;
+        },
+        {} as Record<string, number>
+      );
 
       return {
         totalItems: items.length,

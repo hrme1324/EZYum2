@@ -88,7 +88,10 @@ ports.forEach((port) => {
 // Check API connectivity
 console.log('\n🌐 Checking API connectivity...');
 try {
-  const response = execSync('curl -s -o /dev/null -w "%{http_code}" https://www.themealdb.com/api/json/v1/1/categories.php', { encoding: 'utf8' });
+  const response = execSync(
+    'curl -s -o /dev/null -w "%{http_code}" https://www.themealdb.com/api/json/v1/1/categories.php',
+    { encoding: 'utf8' }
+  );
   if (response.trim() === '200') {
     console.log('✅ MealDB API is accessible');
   } else {
@@ -100,7 +103,7 @@ try {
 
 // Provide solutions
 console.log('\n💡 Solutions for common issues:');
-console.log('1. If assets don\'t load: Clear browser cache and restart dev server');
+console.log("1. If assets don't load: Clear browser cache and restart dev server");
 console.log('2. If API errors: Check internet connection and API endpoints');
 console.log('3. If build fails: Delete node_modules and reinstall dependencies');
 console.log('4. If port conflicts: Kill existing processes or use different port');

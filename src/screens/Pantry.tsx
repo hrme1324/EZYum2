@@ -132,7 +132,7 @@ const Pantry: React.FC = () => {
       });
 
       if (addedItem) {
-        setPantryItems(prev => [addedItem, ...prev]);
+        setPantryItems((prev) => [addedItem, ...prev]);
         setShowAddModal(false);
         setNewItem({ name: '', category: 'other', quantity: 1, expiration: '' });
         toast.success('Item added to pantry');
@@ -167,13 +167,13 @@ const Pantry: React.FC = () => {
         name: newItem.name.trim(),
         category: newItem.category,
         quantity: newItem.quantity,
-                 expiration: newItem.expiration || undefined,
+        expiration: newItem.expiration || undefined,
       });
 
       if (updatedItem) {
-        setPantryItems(prev => prev.map(item =>
-          item.id === editingItem.id ? updatedItem : item
-        ));
+        setPantryItems((prev) =>
+          prev.map((item) => (item.id === editingItem.id ? updatedItem : item))
+        );
         setShowEditModal(false);
         setEditingItem(null);
         setNewItem({ name: '', category: 'other', quantity: 1, expiration: '' });
@@ -193,7 +193,7 @@ const Pantry: React.FC = () => {
     try {
       const success = await PantryService.deletePantryItem(user.id, itemId);
       if (success) {
-        setPantryItems(prev => prev.filter(item => item.id !== itemId));
+        setPantryItems((prev) => prev.filter((item) => item.id !== itemId));
         toast.success('Item removed from pantry');
       } else {
         toast.error('Failed to remove item');
@@ -207,7 +207,7 @@ const Pantry: React.FC = () => {
   const startCamera = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' }
+        video: { facingMode: 'environment' },
       });
       streamRef.current = stream;
       if (videoRef.current) {
@@ -221,7 +221,7 @@ const Pantry: React.FC = () => {
 
   const stopCamera = () => {
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     }
   };
@@ -313,12 +313,13 @@ const Pantry: React.FC = () => {
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <span className="text-2xl">
-                        {categories.find(c => c.id === item.category)?.emoji || '📦'}
+                        {categories.find((c) => c.id === item.category)?.emoji || '📦'}
                       </span>
                       <div>
                         <h3 className="font-medium text-rich-charcoal">{item.name}</h3>
                         <p className="text-sm text-soft-taupe">
-                          Qty: {item.quantity} • {item.source === 'scan' ? '📱 Scanned' : '✏️ Manual'}
+                          Qty: {item.quantity} •{' '}
+                          {item.source === 'scan' ? '📱 Scanned' : '✏️ Manual'}
                         </p>
                       </div>
                     </div>
@@ -326,12 +327,14 @@ const Pantry: React.FC = () => {
                     {item.expiration && (
                       <div className="flex items-center gap-2">
                         <Clock className="w-4 h-4 text-soft-taupe" />
-                        <span className={`text-sm ${getExpirationColor(getDaysUntilExpiration(item.expiration))}`}>
+                        <span
+                          className={`text-sm ${getExpirationColor(getDaysUntilExpiration(item.expiration))}`}
+                        >
                           {getDaysUntilExpiration(item.expiration) < 0
                             ? 'Expired'
                             : getDaysUntilExpiration(item.expiration) === 0
-                            ? 'Expires today'
-                            : `${getDaysUntilExpiration(item.expiration)} days left`}
+                              ? 'Expires today'
+                              : `${getDaysUntilExpiration(item.expiration)} days left`}
                         </span>
                       </div>
                     )}
@@ -385,55 +388,72 @@ const Pantry: React.FC = () => {
             >
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-lora text-rich-charcoal">Add to Pantry</h2>
-                <button onClick={() => setShowAddModal(false)} className="text-soft-taupe hover:text-rich-charcoal">
+                <button
+                  onClick={() => setShowAddModal(false)}
+                  className="text-soft-taupe hover:text-rich-charcoal"
+                >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-rich-charcoal mb-2">Item Name</label>
+                  <label className="block text-sm font-medium text-rich-charcoal mb-2">
+                    Item Name
+                  </label>
                   <input
                     type="text"
                     value={newItem.name}
-                    onChange={(e) => setNewItem(prev => ({ ...prev, name: e.target.value }))}
+                    onChange={(e) => setNewItem((prev) => ({ ...prev, name: e.target.value }))}
                     placeholder="e.g., Chicken Breast"
                     className="w-full p-3 border border-gray-300 rounded-lg focus:border-coral-blush focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-rich-charcoal mb-2">Category</label>
+                  <label className="block text-sm font-medium text-rich-charcoal mb-2">
+                    Category
+                  </label>
                   <select
                     value={newItem.category}
-                    onChange={(e) => setNewItem(prev => ({ ...prev, category: e.target.value }))}
+                    onChange={(e) => setNewItem((prev) => ({ ...prev, category: e.target.value }))}
                     className="w-full p-3 border border-gray-300 rounded-lg focus:border-coral-blush focus:outline-none"
                   >
-                    {categories.filter(c => c.id !== 'all').map(category => (
-                      <option key={category.id} value={category.id}>
-                        {category.emoji} {category.name}
-                      </option>
-                    ))}
+                    {categories
+                      .filter((c) => c.id !== 'all')
+                      .map((category) => (
+                        <option key={category.id} value={category.id}>
+                          {category.emoji} {category.name}
+                        </option>
+                      ))}
                   </select>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-rich-charcoal mb-2">Quantity</label>
+                    <label className="block text-sm font-medium text-rich-charcoal mb-2">
+                      Quantity
+                    </label>
                     <input
                       type="number"
                       min="1"
                       value={newItem.quantity}
-                      onChange={(e) => setNewItem(prev => ({ ...prev, quantity: Number(e.target.value) }))}
+                      onChange={(e) =>
+                        setNewItem((prev) => ({ ...prev, quantity: Number(e.target.value) }))
+                      }
                       className="w-full p-3 border border-gray-300 rounded-lg focus:border-coral-blush focus:outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-rich-charcoal mb-2">Expiration</label>
+                    <label className="block text-sm font-medium text-rich-charcoal mb-2">
+                      Expiration
+                    </label>
                     <input
                       type="date"
                       value={newItem.expiration}
-                      onChange={(e) => setNewItem(prev => ({ ...prev, expiration: e.target.value }))}
+                      onChange={(e) =>
+                        setNewItem((prev) => ({ ...prev, expiration: e.target.value }))
+                      }
                       className="w-full p-3 border border-gray-300 rounded-lg focus:border-coral-blush focus:outline-none"
                     />
                   </div>
@@ -472,55 +492,72 @@ const Pantry: React.FC = () => {
             >
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-lora text-rich-charcoal">Edit Item</h2>
-                <button onClick={() => setShowEditModal(false)} className="text-soft-taupe hover:text-rich-charcoal">
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="text-soft-taupe hover:text-rich-charcoal"
+                >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-rich-charcoal mb-2">Item Name</label>
+                  <label className="block text-sm font-medium text-rich-charcoal mb-2">
+                    Item Name
+                  </label>
                   <input
                     type="text"
                     value={newItem.name}
-                    onChange={(e) => setNewItem(prev => ({ ...prev, name: e.target.value }))}
+                    onChange={(e) => setNewItem((prev) => ({ ...prev, name: e.target.value }))}
                     placeholder="e.g., Chicken Breast"
                     className="w-full p-3 border border-gray-300 rounded-lg focus:border-coral-blush focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-rich-charcoal mb-2">Category</label>
+                  <label className="block text-sm font-medium text-rich-charcoal mb-2">
+                    Category
+                  </label>
                   <select
                     value={newItem.category}
-                    onChange={(e) => setNewItem(prev => ({ ...prev, category: e.target.value }))}
+                    onChange={(e) => setNewItem((prev) => ({ ...prev, category: e.target.value }))}
                     className="w-full p-3 border border-gray-300 rounded-lg focus:border-coral-blush focus:outline-none"
                   >
-                    {categories.filter(c => c.id !== 'all').map(category => (
-                      <option key={category.id} value={category.id}>
-                        {category.emoji} {category.name}
-                      </option>
-                    ))}
+                    {categories
+                      .filter((c) => c.id !== 'all')
+                      .map((category) => (
+                        <option key={category.id} value={category.id}>
+                          {category.emoji} {category.name}
+                        </option>
+                      ))}
                   </select>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-rich-charcoal mb-2">Quantity</label>
+                    <label className="block text-sm font-medium text-rich-charcoal mb-2">
+                      Quantity
+                    </label>
                     <input
                       type="number"
                       min="1"
                       value={newItem.quantity}
-                      onChange={(e) => setNewItem(prev => ({ ...prev, quantity: Number(e.target.value) }))}
+                      onChange={(e) =>
+                        setNewItem((prev) => ({ ...prev, quantity: Number(e.target.value) }))
+                      }
                       className="w-full p-3 border border-gray-300 rounded-lg focus:border-coral-blush focus:outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-rich-charcoal mb-2">Expiration</label>
+                    <label className="block text-sm font-medium text-rich-charcoal mb-2">
+                      Expiration
+                    </label>
                     <input
                       type="date"
                       value={newItem.expiration}
-                      onChange={(e) => setNewItem(prev => ({ ...prev, expiration: e.target.value }))}
+                      onChange={(e) =>
+                        setNewItem((prev) => ({ ...prev, expiration: e.target.value }))
+                      }
                       className="w-full p-3 border border-gray-300 rounded-lg focus:border-coral-blush focus:outline-none"
                     />
                   </div>
@@ -575,7 +612,9 @@ const Pantry: React.FC = () => {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-rich-charcoal mb-2">Barcode Number</label>
+                  <label className="block text-sm font-medium text-rich-charcoal mb-2">
+                    Barcode Number
+                  </label>
                   <input
                     type="text"
                     value={barcodeInput}

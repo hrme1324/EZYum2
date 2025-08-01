@@ -18,7 +18,12 @@
   "devDependencies": {
     "nodemon": "^3.0.1"
   },
-  "keywords": ["food", "recipe", "ai", "api"],
+  "keywords": [
+    "food",
+    "recipe",
+    "ai",
+    "api"
+  ],
   "author": "Ezyum Food App",
   "license": "MIT"
 }

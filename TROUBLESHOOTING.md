@@ -5,11 +5,13 @@
 ### 1. **MIME Type Error: "Expected a JavaScript-or-Wasm module script but the server responded with a MIME type of 'text/html'"**
 
 **Symptoms:**
+
 - Browser console shows MIME type errors
 - Assets fail to load (404 errors)
 - App doesn't render properly
 
 **Root Causes:**
+
 1. **Stale build files** - Old asset references don't match new files
 2. **Development server issues** - Vite not serving latest assets
 3. **Proxy configuration conflicts** - API proxy interfering with asset serving
@@ -18,6 +20,7 @@
 **Solutions:**
 
 #### Quick Fix:
+
 ```bash
 # Clean everything and rebuild
 rm -rf dist node_modules/.vite
@@ -26,6 +29,7 @@ npm run dev
 ```
 
 #### Detailed Fix:
+
 ```bash
 # 1. Stop all development servers
 pkill -f "vite"
@@ -43,6 +47,7 @@ npm run dev
 ```
 
 #### Browser Fix:
+
 1. **Hard refresh**: `Cmd+Shift+R` (Mac) or `Ctrl+Shift+R` (Windows)
 2. **Clear browser cache**: Developer Tools → Application → Storage → Clear
 3. **Disable cache**: Developer Tools → Network → Disable cache
@@ -50,6 +55,7 @@ npm run dev
 ### 2. **API Connection Errors**
 
 **Symptoms:**
+
 - "MealDB API error" in console
 - Recipe data not loading
 - Network errors
@@ -57,6 +63,7 @@ npm run dev
 **Solutions:**
 
 #### Check API Connectivity:
+
 ```bash
 # Test MealDB API
 curl https://www.themealdb.com/api/json/v1/1/categories.php
@@ -66,6 +73,7 @@ curl http://localhost:3000/api/health
 ```
 
 #### Fix API Issues:
+
 1. **Check internet connection**
 2. **Verify API endpoints** in `vite.config.ts`
 3. **Use offline mode** if APIs are down
@@ -73,10 +81,12 @@ curl http://localhost:3000/api/health
 ### 3. **Port Conflicts**
 
 **Symptoms:**
+
 - "Port X is in use" errors
 - Server won't start
 
 **Solutions:**
+
 ```bash
 # Find what's using the port
 lsof -i :3000
@@ -93,11 +103,13 @@ npm run dev -- --port 3003
 ### 4. **Build Failures**
 
 **Symptoms:**
+
 - `npm run build` fails
 - TypeScript errors
 - Missing dependencies
 
 **Solutions:**
+
 ```bash
 # Clean install
 rm -rf node_modules package-lock.json
@@ -114,11 +126,13 @@ npm run build
 ### 5. **Development Server Issues**
 
 **Symptoms:**
+
 - Hot reload not working
 - Changes not reflecting
 - Server crashes
 
 **Solutions:**
+
 ```bash
 # Restart with clean cache
 rm -rf node_modules/.vite
@@ -132,6 +146,7 @@ sudo sysctl -p
 ## 🔍 Diagnostic Tools
 
 ### Run Troubleshooting Script:
+
 ```bash
 node troubleshoot.js
 ```
@@ -139,12 +154,14 @@ node troubleshoot.js
 ### Manual Checks:
 
 #### 1. **Check Build Output:**
+
 ```bash
 ls -la dist/
 ls -la dist/assets/
 ```
 
 #### 2. **Verify Asset References:**
+
 ```bash
 # Check if HTML references match actual files
 grep -o 'index-[^"]*\.js' dist/index.html
@@ -152,6 +169,7 @@ ls dist/assets/*.js
 ```
 
 #### 3. **Test Development Server:**
+
 ```bash
 # Start dev server
 npm run dev
@@ -218,6 +236,7 @@ echo "VITE_SUPABASE_ANON_KEY=your_supabase_key" >> .env
 ### 1. **Vercel Deployment:**
 
 If deploying to Vercel, ensure:
+
 - Build command: `npm run build`
 - Output directory: `dist`
 - Install command: `npm install`
@@ -225,6 +244,7 @@ If deploying to Vercel, ensure:
 ### 2. **Static Hosting:**
 
 For static hosting (Netlify, GitHub Pages):
+
 ```bash
 # Build for production
 npm run build
@@ -236,6 +256,7 @@ npm run preview
 ## 📞 Getting Help
 
 ### 1. **Check Logs:**
+
 ```bash
 # Development logs
 npm run dev 2>&1 | tee dev.log
@@ -246,13 +267,13 @@ npm run build 2>&1 | tee build.log
 
 ### 2. **Common Error Messages:**
 
-| Error | Solution |
-|-------|----------|
-| `MIME type` | Clear cache, rebuild |
-| `Port in use` | Kill processes, use different port |
-| `Module not found` | Reinstall dependencies |
-| `API error` | Check internet, use offline mode |
-| `TypeScript error` | Run `npm run type-check` |
+| Error              | Solution                           |
+| ------------------ | ---------------------------------- |
+| `MIME type`        | Clear cache, rebuild               |
+| `Port in use`      | Kill processes, use different port |
+| `Module not found` | Reinstall dependencies             |
+| `API error`        | Check internet, use offline mode   |
+| `TypeScript error` | Run `npm run type-check`           |
 
 ### 3. **Still Stuck?**
 
@@ -269,6 +290,7 @@ npm run build 2>&1 | tee build.log
 ## ✅ Success Checklist
 
 After fixing issues, verify:
+
 - [ ] `npm run dev` starts without errors
 - [ ] App loads in browser at `http://localhost:3000`
 - [ ] No console errors

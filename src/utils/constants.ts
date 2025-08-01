@@ -121,7 +121,10 @@ export const MOCK_RECIPES = [
     instructions: 'Cook pasta, add chicken, serve hot.',
     image: '',
     tags: ['pasta', 'chicken'],
-    ingredients: [{ name: 'Pasta', measure: '200g' }, { name: 'Chicken', measure: '150g' }],
+    ingredients: [
+      { name: 'Pasta', measure: '200g' },
+      { name: 'Chicken', measure: '150g' },
+    ],
     videoUrl: '',
     websiteUrl: '',
     cookingTime: '30 min',
@@ -129,7 +132,7 @@ export const MOCK_RECIPES = [
     source_type: 'discovery',
     mealdb_id: 'mock-1',
     created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
+    updated_at: new Date().toISOString(),
   },
   {
     id: 'mock-2',
@@ -139,7 +142,10 @@ export const MOCK_RECIPES = [
     instructions: 'Mix vegetables, add feta, drizzle with olive oil.',
     image: '',
     tags: ['salad', 'vegetarian'],
-    ingredients: [{ name: 'Cucumber', measure: '1' }, { name: 'Tomatoes', measure: '2' }],
+    ingredients: [
+      { name: 'Cucumber', measure: '1' },
+      { name: 'Tomatoes', measure: '2' },
+    ],
     videoUrl: '',
     websiteUrl: '',
     cookingTime: '10 min',
@@ -147,7 +153,7 @@ export const MOCK_RECIPES = [
     source_type: 'discovery',
     mealdb_id: 'mock-2',
     created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
+    updated_at: new Date().toISOString(),
   },
   {
     id: 'mock-3',
@@ -157,7 +163,10 @@ export const MOCK_RECIPES = [
     instructions: 'Cook beef with spices, serve in tortillas with toppings.',
     image: '',
     tags: ['tacos', 'beef', 'mexican'],
-    ingredients: [{ name: 'Ground Beef', measure: '300g' }, { name: 'Tortillas', measure: '6' }],
+    ingredients: [
+      { name: 'Ground Beef', measure: '300g' },
+      { name: 'Tortillas', measure: '6' },
+    ],
     videoUrl: '',
     websiteUrl: '',
     cookingTime: '25 min',
@@ -165,7 +174,7 @@ export const MOCK_RECIPES = [
     source_type: 'discovery',
     mealdb_id: 'mock-3',
     created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
+    updated_at: new Date().toISOString(),
   },
   {
     id: 'mock-4',
@@ -175,7 +184,10 @@ export const MOCK_RECIPES = [
     instructions: 'Mix ingredients, bake at 350°F for 30 minutes.',
     image: '',
     tags: ['dessert', 'chocolate', 'cake'],
-    ingredients: [{ name: 'Flour', measure: '2 cups' }, { name: 'Cocoa', measure: '1/2 cup' }],
+    ingredients: [
+      { name: 'Flour', measure: '2 cups' },
+      { name: 'Cocoa', measure: '1/2 cup' },
+    ],
     videoUrl: '',
     websiteUrl: '',
     cookingTime: '45 min',
@@ -183,7 +195,7 @@ export const MOCK_RECIPES = [
     source_type: 'discovery',
     mealdb_id: 'mock-4',
     created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
+    updated_at: new Date().toISOString(),
   },
   {
     id: 'mock-5',
@@ -193,7 +205,10 @@ export const MOCK_RECIPES = [
     instructions: 'Stir fry vegetables with soy sauce and ginger.',
     image: '',
     tags: ['vegetarian', 'asian', 'stir-fry'],
-    ingredients: [{ name: 'Broccoli', measure: '2 cups' }, { name: 'Soy Sauce', measure: '2 tbsp' }],
+    ingredients: [
+      { name: 'Broccoli', measure: '2 cups' },
+      { name: 'Soy Sauce', measure: '2 tbsp' },
+    ],
     videoUrl: '',
     websiteUrl: '',
     cookingTime: '15 min',
@@ -201,8 +216,8 @@ export const MOCK_RECIPES = [
     source_type: 'discovery',
     mealdb_id: 'mock-5',
     created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  }
+    updated_at: new Date().toISOString(),
+  },
 ];
 
 export const MOCK_MEALS = [
@@ -214,7 +229,7 @@ export const MOCK_MEALS = [
     recipe_id: 'mock-1',
     status: 'planned' as const,
     notes: 'Quick breakfast option',
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
   },
   {
     id: 'meal-2',
@@ -224,6 +239,6 @@ export const MOCK_MEALS = [
     recipe_id: 'mock-2',
     status: 'cooked' as const,
     notes: 'Healthy lunch choice',
-    created_at: new Date().toISOString()
-  }
+    created_at: new Date().toISOString(),
+  },
 ];

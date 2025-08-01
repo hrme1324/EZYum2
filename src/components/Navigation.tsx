@@ -33,13 +33,11 @@ const Navigation: React.FC = () => {
               }`}
             >
               <div className="w-6 h-6 mb-1 flex items-center justify-center">
-                {isActive
-                  ? (
-                    <Icon className="w-5 h-5" />
-                  )
-                  : (
-                    <span className="text-lg">{item.emoji}</span>
-                  )}
+                {isActive ? (
+                  <Icon className="w-5 h-5" />
+                ) : (
+                  <span className="text-lg">{item.emoji}</span>
+                )}
               </div>
               <span className={`text-xs font-medium ${isActive ? 'text-coral-blush' : ''}`}>
                 {item.label}

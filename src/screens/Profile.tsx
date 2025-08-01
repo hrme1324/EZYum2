@@ -1,16 +1,16 @@
 import { motion } from 'framer-motion';
 import {
-    AlertTriangle,
-    Bell,
-    Clock,
-    LogOut,
-    Moon,
-    Plus,
-    Settings,
-    Sun,
-    Trophy,
-    Utensils,
-    X
+  AlertTriangle,
+  Bell,
+  Clock,
+  LogOut,
+  Moon,
+  Plus,
+  Settings,
+  Sun,
+  Trophy,
+  Utensils,
+  X,
 } from 'lucide-react';
 import React, { useCallback, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -71,45 +71,48 @@ const Profile: React.FC = () => {
     }
   };
 
-  const updateSetting = useCallback(async (key: keyof UserSettings, value: any) => {
-    if (!user) return;
+  const updateSetting = useCallback(
+    async (key: keyof UserSettings, value: any) => {
+      if (!user) return;
 
-    // Clear existing timeout
-    if (updateTimeout) {
-      clearTimeout(updateTimeout);
-    }
-
-    // Set local state immediately for responsive UI
-    setSettings(prev => prev ? { ...prev, [key]: value } : null);
-
-    // Debounce the actual API call
-    const timeout = setTimeout(async () => {
-      try {
-        const currentSettings = settings || {
-          time_budget: 30,
-          notifications_enabled: true,
-          dark_mode: false,
-          meal_reminders: true,
-          grocery_reminders: true,
-        };
-
-        const updatedSettings = await SettingsService.upsertUserSettings(user.id, {
-          ...currentSettings,
-          [key]: value,
-        });
-
-        if (updatedSettings) {
-          setSettings(updatedSettings);
-          toast.success('Settings updated');
-        }
-      } catch (error) {
-        console.error('Error updating settings:', error);
-        toast.error('Failed to update settings');
+      // Clear existing timeout
+      if (updateTimeout) {
+        clearTimeout(updateTimeout);
       }
-    }, 500); // 500ms debounce
 
-    setUpdateTimeout(timeout);
-  }, [user, settings, updateTimeout]);
+      // Set local state immediately for responsive UI
+      setSettings((prev) => (prev ? { ...prev, [key]: value } : null));
+
+      // Debounce the actual API call
+      const timeout = setTimeout(async () => {
+        try {
+          const currentSettings = settings || {
+            time_budget: 30,
+            notifications_enabled: true,
+            dark_mode: false,
+            meal_reminders: true,
+            grocery_reminders: true,
+          };
+
+          const updatedSettings = await SettingsService.upsertUserSettings(user.id, {
+            ...currentSettings,
+            [key]: value,
+          });
+
+          if (updatedSettings) {
+            setSettings(updatedSettings);
+            toast.success('Settings updated');
+          }
+        } catch (error) {
+          console.error('Error updating settings:', error);
+          toast.error('Failed to update settings');
+        }
+      }, 500); // 500ms debounce
+
+      setUpdateTimeout(timeout);
+    },
+    [user, settings, updateTimeout]
+  );
 
   const addAllergen = async () => {
     if (!user || !newAllergen.name.trim()) return;
@@ -121,7 +124,7 @@ const Profile: React.FC = () => {
       });
 
       if (allergen) {
-        setAllergens(prev => [...prev, allergen]);
+        setAllergens((prev) => [...prev, allergen]);
         setNewAllergen({ name: '', severity: 'moderate' });
         setShowAllergenModal(false);
         toast.success('Allergen added');
@@ -138,7 +141,7 @@ const Profile: React.FC = () => {
     try {
       const success = await SettingsService.removeUserAllergen(user.id, allergenId);
       if (success) {
-        setAllergens(prev => prev.filter(a => a.id !== allergenId));
+        setAllergens((prev) => prev.filter((a) => a.id !== allergenId));
         toast.success('Allergen removed');
       }
     } catch (error) {
@@ -157,7 +160,7 @@ const Profile: React.FC = () => {
       });
 
       if (appliance) {
-        setAppliances(prev => [...prev, appliance]);
+        setAppliances((prev) => [...prev, appliance]);
         setNewAppliance({ name: '', type: 'cooking' });
         setShowApplianceModal(false);
         toast.success('Appliance added');
@@ -174,7 +177,7 @@ const Profile: React.FC = () => {
     try {
       const success = await SettingsService.removeUserAppliance(user.id, applianceId);
       if (success) {
-        setAppliances(prev => prev.filter(a => a.id !== applianceId));
+        setAppliances((prev) => prev.filter((a) => a.id !== applianceId));
         toast.success('Appliance removed');
       }
     } catch (error) {
@@ -183,7 +186,7 @@ const Profile: React.FC = () => {
     }
   };
 
-  const handleSignOut = async() => {
+  const handleSignOut = async () => {
     try {
       await signOut();
     } catch (error) {
@@ -193,19 +196,27 @@ const Profile: React.FC = () => {
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case 'mild': return 'text-green-600 bg-green-100';
-      case 'moderate': return 'text-yellow-600 bg-yellow-100';
-      case 'severe': return 'text-red-600 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
+      case 'mild':
+        return 'text-green-600 bg-green-100';
+      case 'moderate':
+        return 'text-yellow-600 bg-yellow-100';
+      case 'severe':
+        return 'text-red-600 bg-red-100';
+      default:
+        return 'text-gray-600 bg-gray-100';
     }
   };
 
   const getApplianceTypeColor = (type: string) => {
     switch (type) {
-      case 'cooking': return 'text-blue-600 bg-blue-100';
-      case 'preparation': return 'text-purple-600 bg-purple-100';
-      case 'beverage': return 'text-orange-600 bg-orange-100';
-      default: return 'text-gray-600 bg-gray-100';
+      case 'cooking':
+        return 'text-blue-600 bg-blue-100';
+      case 'preparation':
+        return 'text-purple-600 bg-purple-100';
+      case 'beverage':
+        return 'text-orange-600 bg-orange-100';
+      default:
+        return 'text-gray-600 bg-gray-100';
     }
   };
 
@@ -259,7 +270,9 @@ const Profile: React.FC = () => {
                 </div>
               </div>
               <button
-                onClick={() => updateSetting('notifications_enabled', !settings?.notifications_enabled)}
+                onClick={() =>
+                  updateSetting('notifications_enabled', !settings?.notifications_enabled)
+                }
                 className={`w-12 h-6 rounded-full transition-colors ${
                   settings?.notifications_enabled ? 'bg-coral-blush' : 'bg-gray-300'
                 }`}
@@ -274,7 +287,11 @@ const Profile: React.FC = () => {
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                {settings?.dark_mode ? <Moon className="w-5 h-5 text-soft-taupe" /> : <Sun className="w-5 h-5 text-soft-taupe" />}
+                {settings?.dark_mode ? (
+                  <Moon className="w-5 h-5 text-soft-taupe" />
+                ) : (
+                  <Sun className="w-5 h-5 text-soft-taupe" />
+                )}
                 <div>
                   <p className="font-medium text-rich-charcoal">Dark Mode</p>
                   <p className="text-sm text-soft-taupe">Switch theme</p>
@@ -299,7 +316,9 @@ const Profile: React.FC = () => {
                 <Clock className="w-5 h-5 text-soft-taupe" />
                 <div>
                   <p className="font-medium text-rich-charcoal">Time Budget</p>
-                  <p className="text-sm text-soft-taupe">{settings?.time_budget || 30} minutes per meal</p>
+                  <p className="text-sm text-soft-taupe">
+                    {settings?.time_budget || 30} minutes per meal
+                  </p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -345,9 +364,14 @@ const Profile: React.FC = () => {
           ) : (
             <div className="space-y-2">
               {allergens.map((allergen) => (
-                <div key={allergen.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div
+                  key={allergen.id}
+                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                >
                   <div className="flex items-center gap-3">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getSeverityColor(allergen.severity)}`}>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${getSeverityColor(allergen.severity)}`}
+                    >
                       {allergen.severity}
                     </span>
                     <span className="font-medium text-rich-charcoal">{allergen.allergen_name}</span>
@@ -389,12 +413,19 @@ const Profile: React.FC = () => {
           ) : (
             <div className="space-y-2">
               {appliances.map((appliance) => (
-                <div key={appliance.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div
+                  key={appliance.id}
+                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                >
                   <div className="flex items-center gap-3">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getApplianceTypeColor(appliance.appliance_type)}`}>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${getApplianceTypeColor(appliance.appliance_type)}`}
+                    >
                       {appliance.appliance_type}
                     </span>
-                    <span className="font-medium text-rich-charcoal">{appliance.appliance_name}</span>
+                    <span className="font-medium text-rich-charcoal">
+                      {appliance.appliance_name}
+                    </span>
                   </div>
                   <button
                     onClick={() => removeAppliance(appliance.id)}
@@ -461,21 +492,27 @@ const Profile: React.FC = () => {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-rich-charcoal mb-2">Allergen Name</label>
+                <label className="block text-sm font-medium text-rich-charcoal mb-2">
+                  Allergen Name
+                </label>
                 <input
                   type="text"
                   value={newAllergen.name}
-                  onChange={(e) => setNewAllergen(prev => ({ ...prev, name: e.target.value }))}
+                  onChange={(e) => setNewAllergen((prev) => ({ ...prev, name: e.target.value }))}
                   placeholder="e.g., Peanuts, Gluten"
                   className="w-full p-3 border border-gray-300 rounded-lg focus:border-coral-blush focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-rich-charcoal mb-2">Severity</label>
+                <label className="block text-sm font-medium text-rich-charcoal mb-2">
+                  Severity
+                </label>
                 <select
                   value={newAllergen.severity}
-                  onChange={(e) => setNewAllergen(prev => ({ ...prev, severity: e.target.value as any }))}
+                  onChange={(e) =>
+                    setNewAllergen((prev) => ({ ...prev, severity: e.target.value as any }))
+                  }
                   className="w-full p-3 border border-gray-300 rounded-lg focus:border-coral-blush focus:outline-none"
                 >
                   <option value="mild">Mild</option>
@@ -511,11 +548,13 @@ const Profile: React.FC = () => {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-rich-charcoal mb-2">Appliance Name</label>
+                <label className="block text-sm font-medium text-rich-charcoal mb-2">
+                  Appliance Name
+                </label>
                 <input
                   type="text"
                   value={newAppliance.name}
-                  onChange={(e) => setNewAppliance(prev => ({ ...prev, name: e.target.value }))}
+                  onChange={(e) => setNewAppliance((prev) => ({ ...prev, name: e.target.value }))}
                   placeholder="e.g., Microwave, Blender"
                   className="w-full p-3 border border-gray-300 rounded-lg focus:border-coral-blush focus:outline-none"
                 />
@@ -525,7 +564,7 @@ const Profile: React.FC = () => {
                 <label className="block text-sm font-medium text-rich-charcoal mb-2">Type</label>
                 <select
                   value={newAppliance.type}
-                  onChange={(e) => setNewAppliance(prev => ({ ...prev, type: e.target.value }))}
+                  onChange={(e) => setNewAppliance((prev) => ({ ...prev, type: e.target.value }))}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:border-coral-blush focus:outline-none"
                 >
                   <option value="cooking">Cooking</option>

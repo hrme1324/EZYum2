@@ -32,7 +32,13 @@ interface RecipeCardProps {
   quickActions?: QuickAction[];
 }
 
-const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onSave, onDelete, showActions = true, quickActions }) => {
+const RecipeCard: React.FC<RecipeCardProps> = ({
+  recipe,
+  onSave,
+  onDelete,
+  showActions = true,
+  quickActions,
+}) => {
   const [showDetails, setShowDetails] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
 
@@ -51,7 +57,9 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onSave, onDelete, showA
 
   const extractVideoId = (url?: string) => {
     if (!url) return null;
-    const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/);
+    const match = url.match(
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/
+    );
     return match ? match[1] : null;
   };
 
@@ -114,7 +122,9 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onSave, onDelete, showA
             </div>
           )}
           {recipe.difficulty && (
-            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(recipe.difficulty)}`}>
+            <span
+              className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(recipe.difficulty)}`}
+            >
               {recipe.difficulty}
             </span>
           )}
@@ -143,7 +153,9 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onSave, onDelete, showA
                 </span>
               ))}
               {recipe.ingredients.length > 5 && (
-                <span className="text-xs text-soft-taupe">+{recipe.ingredients.length - 5} more</span>
+                <span className="text-xs text-soft-taupe">
+                  +{recipe.ingredients.length - 5} more
+                </span>
               )}
             </div>
           </div>

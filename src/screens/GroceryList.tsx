@@ -1,11 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import {
-    CheckCircle,
-    Circle,
-    Plus,
-    ShoppingCart,
-    Trash2
-} from 'lucide-react';
+import { CheckCircle, Circle, Plus, ShoppingCart, Trash2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { GroceryService } from '../api/groceryService';
@@ -54,7 +48,13 @@ const GroceryList: React.FC = () => {
           { name: 'Chicken Breast', quantity: 2, unit: 'lbs', category: 'protein', checked: false },
           { name: 'Broccoli', quantity: 1, unit: 'head', category: 'vegetables', checked: true },
           { name: 'Brown Rice', quantity: 1, unit: 'bag', category: 'grains', checked: false },
-          { name: 'Olive Oil', quantity: 1, unit: 'bottle', category: 'condiments', checked: false },
+          {
+            name: 'Olive Oil',
+            quantity: 1,
+            unit: 'bottle',
+            category: 'condiments',
+            checked: false,
+          },
           { name: 'Tomatoes', quantity: 6, unit: 'pieces', category: 'vegetables', checked: false },
           { name: 'Eggs', quantity: 12, unit: 'pieces', category: 'protein', checked: true },
           { name: 'Milk', quantity: 1, unit: 'gallon', category: 'dairy', checked: false },
@@ -145,7 +145,7 @@ const GroceryList: React.FC = () => {
     try {
       const success = await GroceryService.clearCompletedItems(user.id);
       if (success) {
-        const newItems = groceryItems.filter(item => !item.checked);
+        const newItems = groceryItems.filter((item) => !item.checked);
         setGroceryItems(newItems);
         toast.success('Completed items cleared');
       } else {
@@ -157,9 +157,11 @@ const GroceryList: React.FC = () => {
     }
   };
 
-  const getCategoryColor = (category: string) => categories.find((c) => c.id === category)?.color || 'bg-gray-100 text-gray-600';
+  const getCategoryColor = (category: string) =>
+    categories.find((c) => c.id === category)?.color || 'bg-gray-100 text-gray-600';
 
-  const getCategoryEmoji = (category: string) => categories.find((c) => c.id === category)?.emoji || '📦';
+  const getCategoryEmoji = (category: string) =>
+    categories.find((c) => c.id === category)?.emoji || '📦';
 
   const groupedItems = groceryItems.reduce(
     (acc, item) => {
@@ -169,7 +171,7 @@ const GroceryList: React.FC = () => {
       acc[item.category].push(item);
       return acc;
     },
-    {} as Record<string, GroceryItem[]>,
+    {} as Record<string, GroceryItem[]>
   );
 
   const checkedCount = groceryItems.filter((item) => item.checked).length;
@@ -249,7 +251,7 @@ const GroceryList: React.FC = () => {
                 </div>
                 <div className="space-y-2">
                   {items.map((item, index) => {
-                    const globalIndex = groceryItems.findIndex(i => i === item);
+                    const globalIndex = groceryItems.findIndex((i) => i === item);
                     return (
                       <motion.div
                         key={`${item.name}-${index}`}
@@ -258,10 +260,7 @@ const GroceryList: React.FC = () => {
                         className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                       >
                         <div className="flex items-center gap-3 flex-1">
-                          <button
-                            onClick={() => toggleItem(globalIndex)}
-                            className="flex-shrink-0"
-                          >
+                          <button onClick={() => toggleItem(globalIndex)} className="flex-shrink-0">
                             {item.checked ? (
                               <CheckCircle className="w-5 h-5 text-green-500" />
                             ) : (
@@ -269,15 +268,19 @@ const GroceryList: React.FC = () => {
                             )}
                           </button>
                           <div className="flex-1">
-                            <span className={`font-medium ${item.checked ? 'line-through text-gray-500' : 'text-rich-charcoal'}`}>
+                            <span
+                              className={`font-medium ${item.checked ? 'line-through text-gray-500' : 'text-rich-charcoal'}`}
+                            >
                               {item.name}
                             </span>
                             <div className="flex items-center gap-2 mt-1">
                               <span className="text-sm text-soft-taupe">
                                 {item.quantity} {item.unit}
                               </span>
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(item.category)}`}>
-                                {categories.find(c => c.id === item.category)?.name}
+                              <span
+                                className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(item.category)}`}
+                              >
+                                {categories.find((c) => c.id === item.category)?.name}
                               </span>
                             </div>
                           </div>
@@ -315,7 +318,9 @@ const GroceryList: React.FC = () => {
                 <h3 className="text-lg font-medium text-rich-charcoal mb-4">Add Item</h3>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-rich-charcoal mb-2">Item Name</label>
+                    <label className="block text-sm font-medium text-rich-charcoal mb-2">
+                      Item Name
+                    </label>
                     <input
                       type="text"
                       value={newItem.name}
@@ -326,17 +331,23 @@ const GroceryList: React.FC = () => {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-rich-charcoal mb-2">Quantity</label>
+                      <label className="block text-sm font-medium text-rich-charcoal mb-2">
+                        Quantity
+                      </label>
                       <input
                         type="number"
                         value={newItem.quantity}
-                        onChange={(e) => setNewItem({ ...newItem, quantity: parseInt(e.target.value) || 1 })}
+                        onChange={(e) =>
+                          setNewItem({ ...newItem, quantity: parseInt(e.target.value) || 1 })
+                        }
                         className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-coral-blush focus:border-transparent"
                         min="1"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-rich-charcoal mb-2">Unit</label>
+                      <label className="block text-sm font-medium text-rich-charcoal mb-2">
+                        Unit
+                      </label>
                       <select
                         value={newItem.unit}
                         onChange={(e) => setNewItem({ ...newItem, unit: e.target.value })}
@@ -354,7 +365,9 @@ const GroceryList: React.FC = () => {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-rich-charcoal mb-2">Category</label>
+                    <label className="block text-sm font-medium text-rich-charcoal mb-2">
+                      Category
+                    </label>
                     <select
                       value={newItem.category}
                       onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}

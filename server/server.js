@@ -17,20 +17,24 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
   'http://localhost:3003',
 ];
 
-app.use(cors({
-  origin(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+  })
+);
 
 // Check for required API keys
 const requiredKeys = ['OPENAI_API_KEY', 'HUGGINGFACE_API_KEY'];
-const missingKeys = requiredKeys.filter((key) => !process.env[key] || process.env[key].includes('your_'));
+const missingKeys = requiredKeys.filter(
+  (key) => !process.env[key] || process.env[key].includes('your_')
+);
 if (missingKeys.length > 0) {
   console.warn('⚠️  Missing or placeholder API keys:', missingKeys.join(', '));
   console.warn('   Add your actual API keys to server/.env for full functionality');
@@ -49,7 +53,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // OpenAI API endpoint
-app.post('/api/ai/recipe-suggestions', async(req, res) => {
+app.post('/api/ai/recipe-suggestions', async (req, res) => {
   try {
     const { ingredients, preferences, dietary } = req.body;
 
@@ -66,7 +70,8 @@ app.post('/api/ai/recipe-suggestions', async(req, res) => {
       messages: [
         {
           role: 'system',
-          content: 'You are a helpful cooking assistant. Provide recipe suggestions in JSON format.',
+          content:
+            'You are a helpful cooking assistant. Provide recipe suggestions in JSON format.',
         },
         {
           role: 'user',
@@ -86,7 +91,7 @@ app.post('/api/ai/recipe-suggestions', async(req, res) => {
 });
 
 // Hugging Face API endpoint
-app.post('/api/ai/food-categorization', async(req, res) => {
+app.post('/api/ai/food-categorization', async (req, res) => {
   try {
     const { foodItems } = req.body;
 
@@ -105,7 +110,7 @@ app.post('/api/ai/food-categorization', async(req, res) => {
           Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
           'Content-Type': 'application/json',
         },
-      },
+      }
     );
 
     res.json({ categories: response.data });
@@ -116,7 +121,7 @@ app.post('/api/ai/food-categorization', async(req, res) => {
 });
 
 // MealDB API endpoint (proxy for better security)
-app.get('/api/recipes/search', async(req, res) => {
+app.get('/api/recipes/search', async (req, res) => {
   try {
     const { query } = req.query;
 
@@ -135,7 +140,7 @@ app.get('/api/recipes/search', async(req, res) => {
   }
 });
 
-app.get('/api/recipes/random', async(req, res) => {
+app.get('/api/recipes/random', async (req, res) => {
   try {
     const axios = require('axios');
     const apiKey = process.env.MEALDB_API_KEY || '';

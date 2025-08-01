@@ -5,12 +5,14 @@ Secure backend API for handling AI services and external API calls.
 ## 🚀 Quick Setup
 
 ### 1. Install Dependencies
+
 ```bash
 cd server
 npm install
 ```
 
 ### 2. Configure Environment
+
 ```bash
 # Copy the example environment file
 cp env.example .env
@@ -20,6 +22,7 @@ nano .env
 ```
 
 ### 3. Add Your API Keys
+
 ```env
 # OpenAI Configuration
 OPENAI_API_KEY=sk-your-openai-key-here
@@ -36,6 +39,7 @@ NODE_ENV=development
 ```
 
 ### 4. Start the Server
+
 ```bash
 # Development mode
 npm run dev
@@ -55,28 +59,33 @@ npm start
 ## 📡 API Endpoints
 
 ### Health Check
+
 ```
 GET /api/health
 ```
 
 ### AI Recipe Suggestions
+
 ```
 POST /api/ai/recipe-suggestions
 Body: { ingredients: [], preferences: "", dietary: "" }
 ```
 
 ### Food Categorization
+
 ```
 POST /api/ai/food-categorization
 Body: { foodItems: [] }
 ```
 
 ### Recipe Search
+
 ```
 GET /api/recipes/search?query=pasta
 ```
 
 ### Random Recipe
+
 ```
 GET /api/recipes/random
 ```
@@ -84,6 +93,7 @@ GET /api/recipes/random
 ## 🔧 Development
 
 ### Testing the API
+
 ```bash
 # Health check
 curl http://localhost:3001/api/health
@@ -95,6 +105,7 @@ curl -X POST http://localhost:3001/api/ai/recipe-suggestions \
 ```
 
 ### Environment Variables
+
 - `OPENAI_API_KEY`: Required for recipe suggestions
 - `HUGGINGFACE_API_KEY`: Required for food categorization
 - `MEALDB_API_KEY`: Optional, for enhanced MealDB access

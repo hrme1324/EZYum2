@@ -1,12 +1,5 @@
 import { motion } from 'framer-motion';
-import {
-    CheckCircle,
-    Clock,
-    Plus,
-    Trash2,
-    Utensils,
-    XCircle
-} from 'lucide-react';
+import { CheckCircle, Clock, Plus, Trash2, Utensils, XCircle } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { MealService } from '../api/mealService';
@@ -37,7 +30,7 @@ const MyMeals: React.FC = () => {
     meal_type: 'breakfast' as 'breakfast' | 'lunch' | 'dinner' | 'snack',
     recipe_id: '',
     notes: '',
-    status: 'planned' as const
+    status: 'planned' as const,
   });
 
   useEffect(() => {
@@ -82,7 +75,7 @@ const MyMeals: React.FC = () => {
         meal_type: newMeal.meal_type,
         recipe_id: newMeal.recipe_id || undefined,
         notes: newMeal.notes,
-        status: newMeal.status
+        status: newMeal.status,
       });
 
       if (success) {
@@ -93,7 +86,7 @@ const MyMeals: React.FC = () => {
           meal_type: 'breakfast',
           recipe_id: '',
           notes: '',
-          status: 'planned'
+          status: 'planned',
         });
         toast.success('Meal added successfully!');
       } else {
@@ -105,7 +98,10 @@ const MyMeals: React.FC = () => {
     }
   };
 
-  const handleUpdateMealStatus = async (mealId: string, status: 'planned' | 'cooked' | 'skipped') => {
+  const handleUpdateMealStatus = async (
+    mealId: string,
+    status: 'planned' | 'cooked' | 'skipped'
+  ) => {
     if (!user) return;
 
     try {
@@ -181,7 +177,7 @@ const MyMeals: React.FC = () => {
     return date.toLocaleDateString('en-US', {
       weekday: 'short',
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
     });
   };
 
@@ -239,10 +235,17 @@ const MyMeals: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-rich-charcoal mb-2">Meal Type</label>
+                  <label className="block text-sm font-medium text-rich-charcoal mb-2">
+                    Meal Type
+                  </label>
                   <select
                     value={newMeal.meal_type}
-                    onChange={(e) => setNewMeal({ ...newMeal, meal_type: e.target.value as 'breakfast' | 'lunch' | 'dinner' | 'snack' })}
+                    onChange={(e) =>
+                      setNewMeal({
+                        ...newMeal,
+                        meal_type: e.target.value as 'breakfast' | 'lunch' | 'dinner' | 'snack',
+                      })
+                    }
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-coral-blush focus:border-transparent"
                   >
                     <option value="breakfast">Breakfast</option>
@@ -253,7 +256,9 @@ const MyMeals: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-rich-charcoal mb-2">Recipe (Optional)</label>
+                  <label className="block text-sm font-medium text-rich-charcoal mb-2">
+                    Recipe (Optional)
+                  </label>
                   <select
                     value={newMeal.recipe_id}
                     onChange={(e) => setNewMeal({ ...newMeal, recipe_id: e.target.value })}
@@ -269,7 +274,9 @@ const MyMeals: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-rich-charcoal mb-2">Notes (Optional)</label>
+                  <label className="block text-sm font-medium text-rich-charcoal mb-2">
+                    Notes (Optional)
+                  </label>
                   <textarea
                     value={newMeal.notes}
                     onChange={(e) => setNewMeal({ ...newMeal, notes: e.target.value })}
@@ -343,7 +350,9 @@ const MyMeals: React.FC = () => {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${getStatusColor(meal.status)}`}>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${getStatusColor(meal.status)}`}
+                    >
                       {getStatusIcon(meal.status)}
                       {meal.status}
                     </span>

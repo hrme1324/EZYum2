@@ -1,13 +1,5 @@
 import { motion } from 'framer-motion';
-import {
-    ChefHat,
-    ChevronLeft,
-    ChevronRight,
-    Clock,
-    Search,
-    Trash2,
-    X
-} from 'lucide-react';
+import { ChefHat, ChevronLeft, ChevronRight, Clock, Search, Trash2, X } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { RecipeService } from '../api/aiService';
@@ -125,14 +117,15 @@ const MealPlanner: React.FC = () => {
   };
 
   const getMealsForType = (mealType: string) => {
-    return meals.filter(meal => meal.meal_type === mealType);
+    return meals.filter((meal) => meal.meal_type === mealType);
   };
 
-  const formatDate = (date: Date) => date.toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric'
-  });
+  const formatDate = (date: Date) =>
+    date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+    });
 
   const navigateDate = (direction: 'prev' | 'next') => {
     const newDate = new Date(selectedDate);
@@ -229,9 +222,7 @@ const MealPlanner: React.FC = () => {
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
                         <h4 className="font-medium text-rich-charcoal">{meal.recipe_name}</h4>
-                        {meal.notes && (
-                          <p className="text-sm text-soft-taupe mt-1">{meal.notes}</p>
-                        )}
+                        {meal.notes && <p className="text-sm text-soft-taupe mt-1">{meal.notes}</p>}
                       </div>
                       <button
                         onClick={() => deleteMeal(meal.id)}

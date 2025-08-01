@@ -1,12 +1,5 @@
 import { motion } from 'framer-motion';
-import {
-    BookOpen,
-    Calendar,
-    Heart,
-    RefreshCw,
-    Search,
-    Star
-} from 'lucide-react';
+import { BookOpen, Calendar, Heart, RefreshCw, Search, Star } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { RecipeService as MealDBService } from '../api/aiService';
@@ -33,7 +26,6 @@ const RecipeHub: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<RecipeSource>('all');
 
-
   useEffect(() => {
     if (user) {
       loadAllRecipes();
@@ -48,14 +40,14 @@ const RecipeHub: React.FC = () => {
 
       if (IS_OFFLINE_MODE) {
         // Use mock data when offline
-        const mockSavedRecipes = MOCK_RECIPES.map(recipe => ({
+        const mockSavedRecipes = MOCK_RECIPES.map((recipe) => ({
           ...recipe,
           source: 'saved' as RecipeSource,
-          isSaved: true
+          isSaved: true,
         }));
         setSavedRecipes(mockSavedRecipes);
 
-        const mockMealsWithSource = MOCK_MEALS.map(meal => ({
+        const mockMealsWithSource = MOCK_MEALS.map((meal) => ({
           id: meal.id,
           name: meal.recipe_id === 'mock-1' ? 'Chicken Pasta' : 'Greek Salad',
           category: 'Meal',
@@ -69,31 +61,32 @@ const RecipeHub: React.FC = () => {
           cookingTime: '',
           difficulty: 'Easy' as const,
           source: 'my-recipes' as RecipeSource,
-          isSaved: true
+          isSaved: true,
         }));
         setWeeklyRecipes(mockMealsWithSource);
 
-        const mockDiscoveryRecipes = MOCK_RECIPES.map(recipe => ({
+        const mockDiscoveryRecipes = MOCK_RECIPES.map((recipe) => ({
           ...recipe,
           source: 'discovery' as RecipeSource,
-          isSaved: false
+          isSaved: false,
         }));
         setRecipes(mockDiscoveryRecipes);
       } else {
         // Load saved recipes
         const savedRecipes = await UserRecipeService.getUserRecipes();
-        const savedWithSource = savedRecipes.map(recipe => ({
+        const savedWithSource = savedRecipes.map((recipe) => ({
           ...recipe,
           source: 'saved' as RecipeSource,
-          isSaved: true
+          isSaved: true,
         }));
         setSavedRecipes(savedWithSource);
 
         // Load meals
         const meals = await MealService.getAllMeals(user.id);
-        const mealsWithSource = meals.map(meal => ({
+        const mealsWithSource = meals.map((meal) => ({
           id: meal.id,
-          name: meal.recipe_name || `${meal.meal_type} on ${new Date(meal.date).toLocaleDateString()}`,
+          name:
+            meal.recipe_name || `${meal.meal_type} on ${new Date(meal.date).toLocaleDateString()}`,
           category: 'Meal',
           area: '',
           instructions: meal.notes || '',
@@ -105,7 +98,7 @@ const RecipeHub: React.FC = () => {
           cookingTime: '',
           difficulty: 'Easy' as const,
           source: 'my-recipes' as RecipeSource,
-          isSaved: true
+          isSaved: true,
         }));
         setWeeklyRecipes(mealsWithSource);
 
@@ -122,10 +115,10 @@ const RecipeHub: React.FC = () => {
 
   const loadDiscoveryRecipes = async () => {
     if (IS_OFFLINE_MODE) {
-      const mockDiscoveryRecipes = MOCK_RECIPES.map(recipe => ({
+      const mockDiscoveryRecipes = MOCK_RECIPES.map((recipe) => ({
         ...recipe,
         source: 'discovery' as RecipeSource,
-        isSaved: false
+        isSaved: false,
       }));
       setRecipes(mockDiscoveryRecipes);
       return;
@@ -138,25 +131,27 @@ const RecipeHub: React.FC = () => {
         MealDBService.getRandomRecipe(),
         MealDBService.getRandomRecipe(),
         MealDBService.getRandomRecipe(),
-        MealDBService.getRandomRecipe()
+        MealDBService.getRandomRecipe(),
       ]);
 
       // Filter out null results and flatten
       const validRecipes = discoveryRecipes
-        .filter(recipe => recipe !== null)
-        .flatMap(recipe => {
+        .filter((recipe) => recipe !== null)
+        .flatMap((recipe) => {
           if (Array.isArray(recipe)) {
             return recipe.map((r: Recipe) => ({
               ...r,
               source: 'discovery' as RecipeSource,
-              isSaved: false
+              isSaved: false,
             }));
           } else if (recipe) {
-            return [{
-              ...recipe as Recipe,
-              source: 'discovery' as RecipeSource,
-              isSaved: false
-            }];
+            return [
+              {
+                ...(recipe as Recipe),
+                source: 'discovery' as RecipeSource,
+                isSaved: false,
+              },
+            ];
           }
           return [];
         });
@@ -171,10 +166,8 @@ const RecipeHub: React.FC = () => {
   const handleSaveRecipe = async (recipe: RecipeWithSource) => {
     if (IS_OFFLINE_MODE) {
       // Simulate saving in offline mode
-      setRecipes(prev => prev.map(r =>
-        r.id === recipe.id ? { ...r, isSaved: true } : r
-      ));
-      setSavedRecipes(prev => [...prev, { ...recipe, isSaved: true }]);
+      setRecipes((prev) => prev.map((r) => (r.id === recipe.id ? { ...r, isSaved: true } : r)));
+      setSavedRecipes((prev) => [...prev, { ...recipe, isSaved: true }]);
       toast.success('Recipe saved! (Offline mode)');
       return;
     }
@@ -182,10 +175,8 @@ const RecipeHub: React.FC = () => {
     try {
       const success = await UserRecipeService.saveMealDBRecipe(recipe, recipe.id);
       if (success) {
-        setRecipes(prev => prev.map(r =>
-          r.id === recipe.id ? { ...r, isSaved: true } : r
-        ));
-        setSavedRecipes(prev => [...prev, { ...recipe, isSaved: true }]);
+        setRecipes((prev) => prev.map((r) => (r.id === recipe.id ? { ...r, isSaved: true } : r)));
+        setSavedRecipes((prev) => [...prev, { ...recipe, isSaved: true }]);
         toast.success('Recipe saved successfully!');
       } else {
         toast.error('Failed to save recipe');
@@ -199,8 +190,8 @@ const RecipeHub: React.FC = () => {
   const handleUnsaveRecipe = async (recipeId: string) => {
     if (IS_OFFLINE_MODE) {
       // Simulate unsaving in offline mode
-      setRecipes(prev => prev.filter(r => r.id !== recipeId));
-      setSavedRecipes(prev => prev.filter(r => r.id !== recipeId));
+      setRecipes((prev) => prev.filter((r) => r.id !== recipeId));
+      setSavedRecipes((prev) => prev.filter((r) => r.id !== recipeId));
       toast.success('Recipe removed! (Offline mode)');
       return;
     }
@@ -208,8 +199,8 @@ const RecipeHub: React.FC = () => {
     try {
       const success = await UserRecipeService.deleteRecipe(recipeId);
       if (success) {
-        setRecipes(prev => prev.filter(r => r.id !== recipeId));
-        setSavedRecipes(prev => prev.filter(r => r.id !== recipeId));
+        setRecipes((prev) => prev.filter((r) => r.id !== recipeId));
+        setSavedRecipes((prev) => prev.filter((r) => r.id !== recipeId));
         toast.success('Recipe removed successfully!');
       } else {
         toast.error('Failed to remove recipe');
@@ -233,14 +224,15 @@ const RecipeHub: React.FC = () => {
 
     if (IS_OFFLINE_MODE) {
       // Filter mock data in offline mode
-      const filtered = MOCK_RECIPES.filter(recipe =>
-        recipe.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (recipe.category && recipe.category.toLowerCase().includes(searchQuery.toLowerCase()))
+      const filtered = MOCK_RECIPES.filter(
+        (recipe) =>
+          recipe.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (recipe.category && recipe.category.toLowerCase().includes(searchQuery.toLowerCase()))
       );
-      const filteredWithSource = filtered.map(recipe => ({
+      const filteredWithSource = filtered.map((recipe) => ({
         ...recipe,
         source: 'discovery' as RecipeSource,
-        isSaved: false
+        isSaved: false,
       }));
       setRecipes(filteredWithSource);
       return;
@@ -249,10 +241,10 @@ const RecipeHub: React.FC = () => {
     try {
       const searchResults = await MealDBService.searchRecipes(searchQuery);
       if (searchResults) {
-        const searchWithSource = searchResults.map(recipe => ({
+        const searchWithSource = searchResults.map((recipe) => ({
           ...recipe,
           source: 'discovery' as RecipeSource,
-          isSaved: false
+          isSaved: false,
         }));
         setRecipes(searchWithSource);
       }
@@ -264,7 +256,7 @@ const RecipeHub: React.FC = () => {
 
   // Combine all recipes based on filter
   const allRecipes = [...savedRecipes, ...weeklyRecipes, ...recipes];
-  const filteredRecipes = allRecipes.filter(recipe => {
+  const filteredRecipes = allRecipes.filter((recipe) => {
     if (activeFilter === 'all') return true;
     if (activeFilter === 'saved') return recipe.source === 'saved';
     if (activeFilter === 'my-recipes') return recipe.source === 'my-recipes';
@@ -303,7 +295,13 @@ const RecipeHub: React.FC = () => {
 
         {/* Search Bar */}
         <div className="mb-6">
-          <form onSubmit={(e) => { e.preventDefault(); handleSearch(); }} className="relative">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSearch();
+            }}
+            className="relative"
+          >
             <input
               type="text"
               placeholder="Search recipes..."
@@ -356,7 +354,9 @@ const RecipeHub: React.FC = () => {
               }`}
             >
               <Calendar className="w-4 h-4" />
-              <span className="text-sm font-medium">My Recipes ({getFilterCount('my-recipes')})</span>
+              <span className="text-sm font-medium">
+                My Recipes ({getFilterCount('my-recipes')})
+              </span>
             </button>
 
             <button
@@ -387,7 +387,9 @@ const RecipeHub: React.FC = () => {
             <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-rich-charcoal mb-2">No recipes found</h3>
             <p className="text-soft-taupe mb-4">
-              {searchQuery ? `No recipes match "${searchQuery}"` : 'Start exploring to discover amazing recipes'}
+              {searchQuery
+                ? `No recipes match "${searchQuery}"`
+                : 'Start exploring to discover amazing recipes'}
             </p>
             {!searchQuery && (
               <button
@@ -419,15 +421,19 @@ const RecipeHub: React.FC = () => {
                     {
                       label: recipe.isSaved ? 'Remove' : 'Save',
                       icon: recipe.isSaved ? Heart : Heart,
-                      action: recipe.isSaved ? () => handleUnsaveRecipe(recipe.id) : () => handleSaveRecipe(recipe),
-                      className: recipe.isSaved ? 'text-red-500 hover:text-red-600' : 'text-coral-blush hover:text-opacity-80'
+                      action: recipe.isSaved
+                        ? () => handleUnsaveRecipe(recipe.id)
+                        : () => handleSaveRecipe(recipe),
+                      className: recipe.isSaved
+                        ? 'text-red-500 hover:text-red-600'
+                        : 'text-coral-blush hover:text-opacity-80',
                     },
                     {
                       label: 'Add to Weekly',
                       icon: Calendar,
                       action: () => handleAddToWeekly(),
-                      className: 'text-blue-500 hover:text-blue-600'
-                    }
+                      className: 'text-blue-500 hover:text-blue-600',
+                    },
                   ]}
                 />
               </motion.div>

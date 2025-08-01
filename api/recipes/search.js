@@ -12,7 +12,7 @@ export default async function handler(req, res) {
 
     const apiKey = process.env.MEALDB_API_KEY || '1'; // MealDB has a public API
     const response = await fetch(
-      `https://www.themealdb.com/api/json/v1/${apiKey}/search.php?s=${encodeURIComponent(query)}`,
+      `https://www.themealdb.com/api/json/v1/${apiKey}/search.php?s=${encodeURIComponent(query)}`
     );
 
     if (!response.ok) {

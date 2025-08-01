@@ -5,7 +5,11 @@
   "main": "index.js",
   "dependencies": {},
   "devDependencies": {},
-  "keywords": ["api", "food", "recipe"],
+  "keywords": [
+    "api",
+    "food",
+    "recipe"
+  ],
   "author": "Ezyum Food App",
   "license": "MIT"
 }

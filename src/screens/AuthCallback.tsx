@@ -7,7 +7,7 @@ const AuthCallback: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const handleAuthCallback = async() => {
+    const handleAuthCallback = async () => {
       try {
         const { data, error } = await supabase.auth.getSession();
 

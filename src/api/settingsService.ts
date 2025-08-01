@@ -40,7 +40,10 @@ export class SettingsService {
   /**
    * Create or update user settings
    */
-  static async upsertUserSettings(userId: string, settings: Partial<UserSettings>): Promise<UserSettings | null> {
+  static async upsertUserSettings(
+    userId: string,
+    settings: Partial<UserSettings>
+  ): Promise<UserSettings | null> {
     try {
       const { data, error } = await supabase
         .from('user_settings')
@@ -122,7 +125,10 @@ export class SettingsService {
   /**
    * Add user allergen
    */
-  static async addUserAllergen(userId: string, allergen: Omit<UserAllergen, 'id' | 'user_id' | 'created_at'>): Promise<UserAllergen | null> {
+  static async addUserAllergen(
+    userId: string,
+    allergen: Omit<UserAllergen, 'id' | 'user_id' | 'created_at'>
+  ): Promise<UserAllergen | null> {
     try {
       const { data, error } = await supabase
         .from('user_allergens')
@@ -195,7 +201,10 @@ export class SettingsService {
   /**
    * Add user appliance
    */
-  static async addUserAppliance(userId: string, appliance: Omit<UserAppliance, 'id' | 'user_id' | 'created_at'>): Promise<UserAppliance | null> {
+  static async addUserAppliance(
+    userId: string,
+    appliance: Omit<UserAppliance, 'id' | 'user_id' | 'created_at'>
+  ): Promise<UserAppliance | null> {
     try {
       const { data, error } = await supabase
         .from('user_appliances')

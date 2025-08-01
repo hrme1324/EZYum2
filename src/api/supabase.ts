@@ -11,12 +11,13 @@ console.log('🔍 Environment Variables Check:', {
   keyLength: supabaseAnonKey?.length,
   isDev: import.meta.env.DEV,
   isProd: import.meta.env.PROD,
-  allEnvKeys: Object.keys(import.meta.env).filter(key => key.startsWith('VITE_')),
+  allEnvKeys: Object.keys(import.meta.env).filter((key) => key.startsWith('VITE_')),
 });
 
 // Fallback values for production (these are safe to use as they're public keys)
 const fallbackUrl = 'https://whclrrwwnffirgcngeos.supabase.co';
-const fallbackKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndoY2xycnd3bmZmaXJnY25nZW9zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM3MTcxMjksImV4cCI6MjA2OTI5MzEyOX0.YpJOsuOC7suZNPZxx9xgIPFdsJY-XrglfIge_CSeYx8';
+const fallbackKey =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndoY2xycnd3bmZmaXJnY25nZW9zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM3MTcxMjksImV4cCI6MjA2OTI5MzEyOX0.YpJOsuOC7suZNPZxx9xgIPFdsJY-XrglfIge_CSeYx8';
 
 // Use environment variables if available, otherwise use fallbacks
 const finalUrl = supabaseUrl || fallbackUrl;

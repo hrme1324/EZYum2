@@ -5,9 +5,7 @@ export default async function handler(req, res) {
 
   try {
     const apiKey = process.env.MEALDB_API_KEY || '1'; // MealDB has a public API
-    const response = await fetch(
-      `https://www.themealdb.com/api/json/v1/${apiKey}/random.php`,
-    );
+    const response = await fetch(`https://www.themealdb.com/api/json/v1/${apiKey}/random.php`);
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);

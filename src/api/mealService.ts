@@ -29,7 +29,11 @@ export class MealService {
   /**
    * Get meals for a date range
    */
-  static async getMealsForDateRange(userId: string, startDate: string, endDate: string): Promise<Meal[]> {
+  static async getMealsForDateRange(
+    userId: string,
+    startDate: string,
+    endDate: string
+  ): Promise<Meal[]> {
     try {
       const { data, error } = await supabase
         .from('meals')
@@ -59,10 +63,12 @@ export class MealService {
     try {
       const { data, error } = await supabase
         .from('meals')
-        .select(`
+        .select(
+          `
           *,
           recipe:recipes(*)
-        `)
+        `
+        )
         .eq('user_id', userId)
         .order('date', { ascending: false })
         .order('meal_type');
@@ -82,13 +88,16 @@ export class MealService {
   /**
    * Add a meal
    */
-  static async addMeal(userId: string, meal: Omit<Meal, 'id' | 'user_id' | 'created_at'>): Promise<Meal | null> {
+  static async addMeal(
+    userId: string,
+    meal: Omit<Meal, 'id' | 'user_id' | 'created_at'>
+  ): Promise<Meal | null> {
     try {
       // Handle MealDB recipe IDs (strings) vs UUID recipe IDs
       let recipeId = meal.recipe_id;
 
       // If recipe_id is a MealDB ID (numeric string), we need to find the corresponding recipe in our database
-      if (recipeId && (/^\d+$/).test(recipeId)) {
+      if (recipeId && /^\d+$/.test(recipeId)) {
         // This is a MealDB ID, find the corresponding recipe in our database
         const { data: recipeData } = await supabase
           .from('recipes')
@@ -134,7 +143,11 @@ export class MealService {
   /**
    * Update a meal
    */
-  static async updateMeal(userId: string, mealId: string, updates: Partial<Meal>): Promise<Meal | null> {
+  static async updateMeal(
+    userId: string,
+    mealId: string,
+    updates: Partial<Meal>
+  ): Promise<Meal | null> {
     try {
       const { data, error } = await supabase
         .from('meals')
@@ -205,7 +218,10 @@ export class MealService {
   /**
    * Add a recipe
    */
-  static async addRecipe(userId: string, recipe: Omit<Recipe, 'id' | 'user_id' | 'created_at'>): Promise<Recipe | null> {
+  static async addRecipe(
+    userId: string,
+    recipe: Omit<Recipe, 'id' | 'user_id' | 'created_at'>
+  ): Promise<Recipe | null> {
     try {
       const { data, error } = await supabase
         .from('recipes')
@@ -244,10 +260,7 @@ export class MealService {
     skippedMeals: number;
   }> {
     try {
-      const { data, error } = await supabase
-        .from('meals')
-        .select('status')
-        .eq('user_id', userId);
+      const { data, error } = await supabase.from('meals').select('status').eq('user_id', userId);
 
       if (error) {
         console.error('Error fetching meal stats:', error);
@@ -262,9 +275,9 @@ export class MealService {
       const meals = data || [];
       return {
         totalMeals: meals.length,
-        plannedMeals: meals.filter(m => m.status === 'planned').length,
-        cookedMeals: meals.filter(m => m.status === 'cooked').length,
-        skippedMeals: meals.filter(m => m.status === 'skipped').length,
+        plannedMeals: meals.filter((m) => m.status === 'planned').length,
+        cookedMeals: meals.filter((m) => m.status === 'cooked').length,
+        skippedMeals: meals.filter((m) => m.status === 'skipped').length,
       };
     } catch (error) {
       console.error('Meal service error:', error);

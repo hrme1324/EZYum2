@@ -1,14 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import {
-    ChefHat,
-    ExternalLink,
-    Link,
-    Plus,
-    Search,
-    Trash2,
-    X,
-    Youtube
-} from 'lucide-react';
+import { ChefHat, ExternalLink, Link, Plus, Search, Trash2, X, Youtube } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { RecipeService, UserRecipe } from '../api/recipeService';
@@ -64,12 +55,15 @@ const RecipeLibrary: React.FC = () => {
 
   const addIngredient = () => {
     if (currentIngredient.trim() && currentMeasure.trim()) {
-      setNewRecipe(prev => ({
+      setNewRecipe((prev) => ({
         ...prev,
-        ingredients: [...prev.ingredients, {
-          name: currentIngredient.trim(),
-          measure: currentMeasure.trim()
-        }]
+        ingredients: [
+          ...prev.ingredients,
+          {
+            name: currentIngredient.trim(),
+            measure: currentMeasure.trim(),
+          },
+        ],
       }));
       setCurrentIngredient('');
       setCurrentMeasure('');
@@ -77,26 +71,26 @@ const RecipeLibrary: React.FC = () => {
   };
 
   const removeIngredient = (index: number) => {
-    setNewRecipe(prev => ({
+    setNewRecipe((prev) => ({
       ...prev,
-      ingredients: prev.ingredients.filter((_, i) => i !== index)
+      ingredients: prev.ingredients.filter((_, i) => i !== index),
     }));
   };
 
   const addTag = () => {
     if (currentTag.trim()) {
-      setNewRecipe(prev => ({
+      setNewRecipe((prev) => ({
         ...prev,
-        tags: [...prev.tags, currentTag.trim()]
+        tags: [...prev.tags, currentTag.trim()],
       }));
       setCurrentTag('');
     }
   };
 
   const removeTag = (index: number) => {
-    setNewRecipe(prev => ({
+    setNewRecipe((prev) => ({
       ...prev,
-      tags: prev.tags.filter((_, i) => i !== index)
+      tags: prev.tags.filter((_, i) => i !== index),
     }));
   };
 
@@ -154,10 +148,11 @@ const RecipeLibrary: React.FC = () => {
     setShowRecipeDetails(true);
   };
 
-  const filteredRecipes = recipes.filter(recipe =>
-    recipe.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (recipe.category && recipe.category.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    (recipe.area && recipe.area.toLowerCase().includes(searchQuery.toLowerCase()))
+  const filteredRecipes = recipes.filter(
+    (recipe) =>
+      recipe.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (recipe.category && recipe.category.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (recipe.area && recipe.area.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   if (!user) {
@@ -236,7 +231,9 @@ const RecipeLibrary: React.FC = () => {
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
                     <h3 className="font-medium text-rich-charcoal mb-1">{recipe.name}</h3>
-                    <p className="text-sm text-soft-taupe">{recipe.category} • {recipe.area}</p>
+                    <p className="text-sm text-soft-taupe">
+                      {recipe.category} • {recipe.area}
+                    </p>
                   </div>
                   <button
                     onClick={(e) => {
@@ -270,7 +267,10 @@ const RecipeLibrary: React.FC = () => {
                   <div className="mb-2">
                     <p className="text-xs font-medium text-rich-charcoal mb-1">Ingredients:</p>
                     <p className="text-xs text-soft-taupe">
-                      {recipe.ingredients.slice(0, 3).map(ing => `${ing.name} (${ing.measure})`).join(', ')}
+                      {recipe.ingredients
+                        .slice(0, 3)
+                        .map((ing) => `${ing.name} (${ing.measure})`)
+                        .join(', ')}
                       {recipe.ingredients.length > 3 && '...'}
                     </p>
                   </div>
@@ -280,8 +280,7 @@ const RecipeLibrary: React.FC = () => {
                   <p className="text-xs text-soft-taupe line-clamp-2">
                     {recipe.instructions.length > 100
                       ? recipe.instructions.substring(0, 100) + '...'
-                      : recipe.instructions
-                    }
+                      : recipe.instructions}
                   </p>
                 )}
               </motion.div>
@@ -320,7 +319,9 @@ const RecipeLibrary: React.FC = () => {
                 <div className="flex items-center gap-4 text-sm text-soft-taupe">
                   <span>{selectedRecipe.cookingTime}</span>
                   <span>{selectedRecipe.difficulty}</span>
-                  <span>{selectedRecipe.category} • {selectedRecipe.area}</span>
+                  <span>
+                    {selectedRecipe.category} • {selectedRecipe.area}
+                  </span>
                 </div>
 
                 {/* Video and Website Links */}
@@ -429,7 +430,7 @@ const RecipeLibrary: React.FC = () => {
                   <input
                     type="text"
                     value={newRecipe.name}
-                    onChange={(e) => setNewRecipe(prev => ({ ...prev, name: e.target.value }))}
+                    onChange={(e) => setNewRecipe((prev) => ({ ...prev, name: e.target.value }))}
                     placeholder="Enter recipe name..."
                     className="w-full p-3 border border-gray-300 rounded-lg focus:border-coral-blush focus:outline-none"
                   />
@@ -443,7 +444,9 @@ const RecipeLibrary: React.FC = () => {
                     <input
                       type="text"
                       value={newRecipe.category}
-                      onChange={(e) => setNewRecipe(prev => ({ ...prev, category: e.target.value }))}
+                      onChange={(e) =>
+                        setNewRecipe((prev) => ({ ...prev, category: e.target.value }))
+                      }
                       placeholder="e.g., Italian, Asian..."
                       className="w-full p-3 border border-gray-300 rounded-lg focus:border-coral-blush focus:outline-none"
                     />
@@ -455,7 +458,7 @@ const RecipeLibrary: React.FC = () => {
                     <input
                       type="text"
                       value={newRecipe.area}
-                      onChange={(e) => setNewRecipe(prev => ({ ...prev, area: e.target.value }))}
+                      onChange={(e) => setNewRecipe((prev) => ({ ...prev, area: e.target.value }))}
                       placeholder="e.g., Italy, Thailand..."
                       className="w-full p-3 border border-gray-300 rounded-lg focus:border-coral-blush focus:outline-none"
                     />
@@ -468,7 +471,9 @@ const RecipeLibrary: React.FC = () => {
                   </label>
                   <textarea
                     value={newRecipe.instructions}
-                    onChange={(e) => setNewRecipe(prev => ({ ...prev, instructions: e.target.value }))}
+                    onChange={(e) =>
+                      setNewRecipe((prev) => ({ ...prev, instructions: e.target.value }))
+                    }
                     placeholder="Enter cooking instructions..."
                     className="w-full p-3 border border-gray-300 rounded-lg focus:border-coral-blush focus:outline-none"
                     rows={4}
@@ -531,7 +536,9 @@ const RecipeLibrary: React.FC = () => {
                     <input
                       type="text"
                       value={newRecipe.cookingTime}
-                      onChange={(e) => setNewRecipe(prev => ({ ...prev, cookingTime: e.target.value }))}
+                      onChange={(e) =>
+                        setNewRecipe((prev) => ({ ...prev, cookingTime: e.target.value }))
+                      }
                       placeholder="e.g., 30 min"
                       className="w-full p-3 border border-gray-300 rounded-lg focus:border-coral-blush focus:outline-none"
                     />
@@ -542,7 +549,12 @@ const RecipeLibrary: React.FC = () => {
                     </label>
                     <select
                       value={newRecipe.difficulty}
-                      onChange={(e) => setNewRecipe(prev => ({ ...prev, difficulty: e.target.value as 'Easy' | 'Medium' | 'Hard' }))}
+                      onChange={(e) =>
+                        setNewRecipe((prev) => ({
+                          ...prev,
+                          difficulty: e.target.value as 'Easy' | 'Medium' | 'Hard',
+                        }))
+                      }
                       className="w-full p-3 border border-gray-300 rounded-lg focus:border-coral-blush focus:outline-none"
                     >
                       <option value="Easy">Easy</option>
@@ -559,7 +571,9 @@ const RecipeLibrary: React.FC = () => {
                   <input
                     type="url"
                     value={newRecipe.videoUrl}
-                    onChange={(e) => setNewRecipe(prev => ({ ...prev, videoUrl: e.target.value }))}
+                    onChange={(e) =>
+                      setNewRecipe((prev) => ({ ...prev, videoUrl: e.target.value }))
+                    }
                     placeholder="https://www.youtube.com/watch?v=..."
                     className="w-full p-3 border border-gray-300 rounded-lg focus:border-coral-blush focus:outline-none"
                   />
@@ -572,16 +586,16 @@ const RecipeLibrary: React.FC = () => {
                   <input
                     type="url"
                     value={newRecipe.websiteUrl}
-                    onChange={(e) => setNewRecipe(prev => ({ ...prev, websiteUrl: e.target.value }))}
+                    onChange={(e) =>
+                      setNewRecipe((prev) => ({ ...prev, websiteUrl: e.target.value }))
+                    }
                     placeholder="https://example.com/recipe..."
                     className="w-full p-3 border border-gray-300 rounded-lg focus:border-coral-blush focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-rich-charcoal mb-2">
-                    Tags
-                  </label>
+                  <label className="block text-sm font-medium text-rich-charcoal mb-2">Tags</label>
                   <div className="flex gap-2 mb-2">
                     <input
                       type="text"

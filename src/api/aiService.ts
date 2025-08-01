@@ -11,7 +11,7 @@ const extractIngredients = (meal: any): Array<{ name: string; measure: string }>
     if (ingredient && ingredient.trim()) {
       ingredients.push({
         name: ingredient.trim(),
-        measure: measure ? measure.trim() : ''
+        measure: measure ? measure.trim() : '',
       });
     }
   }
@@ -42,7 +42,9 @@ export class RecipeService {
    */
   static async searchRecipes(query: string): Promise<Recipe[]> {
     try {
-      const response = await fetch(`${BACKEND_URL}/recipes/search?query=${encodeURIComponent(query)}`);
+      const response = await fetch(
+        `${BACKEND_URL}/recipes/search?query=${encodeURIComponent(query)}`
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
