@@ -5,6 +5,15 @@ import { Recipe } from '../components/RecipeCard';
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ||
   (import.meta.env.DEV ? 'http://localhost:3001/api' : '/api');
 
+// Debug logging
+console.log('🔧 API Configuration:', {
+  VITE_BACKEND_URL: import.meta.env.VITE_BACKEND_URL,
+  isDev: import.meta.env.DEV,
+  hostname: window.location.hostname,
+  BACKEND_URL,
+  fullUrl: window.location.href
+});
+
 // Helper function to extract ingredients from MealDB response
 const extractIngredients = (meal: any): Array<{ name: string; measure: string }> => {
   const ingredients = [];
