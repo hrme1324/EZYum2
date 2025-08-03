@@ -27,7 +27,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         hostname: window.location.hostname,
         origin: window.location.origin,
         isDev: import.meta.env.DEV,
-        baseUrl
+        baseUrl,
       });
 
       const { error } = await supabase.auth.signInWithOAuth({

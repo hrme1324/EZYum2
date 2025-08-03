@@ -129,7 +129,7 @@ export const getAuthBaseUrl = (): string => {
     isDev,
     viteSiteUrl,
     userAgent: userAgent.substring(0, 100) + '...',
-    fullUrl: window.location.href
+    fullUrl: window.location.href,
   });
 
   // Check for environment variable first

@@ -2,8 +2,8 @@ import { Recipe } from '../components/RecipeCard';
 
 // For local development: http://localhost:3001/api
 // For Vercel deployment: /api (relative path)
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ||
-  (import.meta.env.DEV ? 'http://localhost:3001/api' : '/api');
+const BACKEND_URL =
+  import.meta.env.VITE_BACKEND_URL || (import.meta.env.DEV ? 'http://localhost:3001/api' : '/api');
 
 // Debug logging
 console.log('🔧 API Configuration:', {
@@ -11,7 +11,7 @@ console.log('🔧 API Configuration:', {
   isDev: import.meta.env.DEV,
   hostname: window.location.hostname,
   BACKEND_URL,
-  fullUrl: window.location.href
+  fullUrl: window.location.href,
 });
 
 // Helper function to extract ingredients from MealDB response
