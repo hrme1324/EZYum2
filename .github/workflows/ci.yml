@@ -35,12 +35,6 @@ jobs:
       - name: Build application
         run: npm run build
 
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-files
-          path: dist/
-
   deploy-preview:
     needs: test-and-build
     runs-on: ubuntu-latest
@@ -49,12 +43,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-files
-          path: dist/
 
       - name: Deploy to Vercel (Preview)
         uses: amondnet/vercel-action@v25
@@ -73,12 +61,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-files
-          path: dist/
 
       - name: Deploy to Vercel (Production)
         uses: amondnet/vercel-action@v25
