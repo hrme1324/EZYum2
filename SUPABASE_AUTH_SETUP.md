@@ -114,3 +114,19 @@ The app now includes comprehensive debugging. Check the browser console for:
 - [ ] Local testing redirects to `ezyum.com`
 - [ ] Mobile testing redirects to `ezyum.com`
 - [ ] Production testing works correctly
+
+## Redirect Issue Summary (Recorded)
+- Symptom: After Google sign‑in on `ezyum.com`, app redirected to `localhost`.
+- Root cause: Missing/incorrect redirect URL config and no `VITE_SITE_URL`.
+- Resolution:
+  - Set `VITE_SITE_URL=https://ezyum.com` (frontend env).
+  - Ensure Supabase Auth → URL Configuration includes:
+    - Site URL: `https://ezyum.com`
+    - Redirect URLs: `https://ezyum.com/auth/callback`, `http://localhost:3000/auth/callback`.
+  - Use runtime detection to compute `redirectTo` via `getAuthBaseUrl()`.
+
+### Quick Checklist
+- [ ] `VITE_SITE_URL` set in local `.env.local` and Vercel env.
+- [ ] Supabase redirect list updated (prod + local).
+- [ ] Google OAuth URIs updated (prod + local).
+- [ ] `authStore.ts` uses computed `redirectTo`.

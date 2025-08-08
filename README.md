@@ -170,3 +170,24 @@ For issues and questions:
 - Check the troubleshooting guide
 - Review the documentation
 - Open an issue on GitHub
+
+## Environment Variables (Frontend)
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+- `VITE_SITE_URL` (prod: `https://ezyum.com`)
+- `VITE_BACKEND_URL` (dev only: `http://localhost:3001/api`)
+
+## Environment Variables (Backend / Serverless)
+- `OPENAI_API_KEY`, `HUGGINGFACE_API_KEY`, `MEALDB_API_KEY`
+- `ALLOWED_ORIGINS` (e.g., `https://ezyum.com,http://localhost:3000`)
+- `NODE_ENV` (production in Vercel)
+
+## Build & Deploy
+- Node.js enforced via `package.json` `engines: { "node": "18.x" }`.
+- Vercel configuration uses explicit builds and serverless route to `/api`.
+- GitHub Actions deploys using Vercel Action with CLI fallback. See `.github/workflows/ci.yml`.
+
+## Known Fixes
+- MIME type error fixed via asset route in `vercel.json`.
+- `/api/recipes/random` 404 fixed via serverless export and route.
+- OAuth localhost redirect fixed via `VITE_SITE_URL` + Supabase config.

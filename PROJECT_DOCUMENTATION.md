@@ -676,4 +676,52 @@ PORT=3003 npm start
 
 ---
 
+## Recent Deployment Fixes and Changes (2025-08)
+
+- **Auth redirect fixed**: Implemented robust redirect URL detection via `getAuthBaseUrl()` and `VITE_SITE_URL`. Production redirects to `https://ezyum.com/auth/callback`; local uses `http://localhost:3000/auth/callback`.
+- **Supabase config**: Added `VITE_SITE_URL` variable; documented required Supabase redirect URLs and Google OAuth URIs. See `SUPABASE_AUTH_SETUP.md`.
+- **Vercel routing**: Resolved MIME type error by serving static assets directly using route `{ "src": "/(.*\\..*)", "dest": "/$1" }` and SPA catch‑all to `index.html`.
+- **API 404 on `/api/recipes/random`**: Fixed by deploying backend as Vercel Serverless (Express) and exporting `module.exports = app`; updated `vercel.json` to route `/api/(.*)` to `server/server.js`.
+- **vercel.json strategy**: Documented two approaches and final choice.
+  - Option A: `functions` block (modern).
+  - Option B: `builds` entries for `@vercel/static-build` + `@vercel/node`.
+  - We currently use the `builds` approach to avoid conflicts and let frontend build be explicit.
+- **Node version**: Added `"engines": { "node": "18.x" }` to `package.json` to align Vercel runtime.
+- **Frontend API base URL**: `src/api/aiService.ts` now logs and resolves `BACKEND_URL` to `/api` on production and `http://localhost:3001/api` in dev.
+- **GitHub Actions (CI/CD)**:
+  - Removed artifact upload/download; Vercel Action builds itself.
+  - Added explicit `VERCEL_TOKEN` env, `vercel whoami` debug step, and CLI fallback (`npx vercel --prod --token=$VERCEL_TOKEN`).
+  - Kept tokens/org/project IDs via secrets.
+- **Lint/format stability**: Relaxed ESLint rules, kept Prettier, and ensured `npm run build` green.
+- **UI**: Restored the original Home page design with animations and quick actions.
+
+### Current vercel.json (builds approach)
+
+```json
+{
+  "version": 2,
+  "builds": [
+    { "src": "package.json", "use": "@vercel/static-build", "config": { "distDir": "dist" } },
+    { "src": "server/server.js", "use": "@vercel/node" }
+  ],
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/server/server.js" },
+    { "src": "/(.*\\..*)", "dest": "/$1" },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ]
+}
+```
+
+### Key environment variables
+
+- Frontend: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_SITE_URL`, `VITE_BACKEND_URL` (dev only: `http://localhost:3001/api`).
+- Backend (serverless): `OPENAI_API_KEY`, `HUGGINGFACE_API_KEY`, `MEALDB_API_KEY`, `ALLOWED_ORIGINS`, `NODE_ENV`.
+
+### Known issues resolved
+
+- Strict MIME type error on production assets → fixed via static asset route.
+- OAuth redirect to localhost after login → fixed via `VITE_SITE_URL` and runtime domain detection.
+- 404s for `/api/recipes/random` in production → fixed by serverless routing and export.
+- Vercel “You must re-authenticate” in GitHub Actions → fixed via explicit token env, debug step, and CLI fallback.
+
 _This document is automatically updated with each major development session. Last updated: July 28, 2025 - v1.3.0_

@@ -165,6 +165,26 @@ curl https://your-app.vercel.app/api/health
 - Global CDN
 - Integrated with frontend deployment
 
+## vercel.json: Builds vs Functions
+
+You cannot use `builds` and `functions` simultaneously if they conflict. Two viable patterns:
+
+- **Pattern A: Builds (Chosen)**
+  - Frontend build via `@vercel/static-build` (dist output)
+  - Backend via `@vercel/node` on `server/server.js`
+  - Routes:
+    - `/api/(.*)` → `/server/server.js`
+    - `/(.*\\..*)` → `/$1` (serve assets)
+    - `/(.*)` → `/index.html` (SPA)
+
+- Pattern B: Functions block
+  - Define `functions` for runtime
+  - Let Vercel auto-detect frontend build from `package.json`
+
+We currently use Pattern A to be explicit and avoid conflicts.
+
+See also: `TROUBLESHOOTING.md` for MIME type and 404 fixes, and `VERCEL_AUTH_TROUBLESHOOTING.md` for token issues in CI.
+
 ## 📚 Additional Resources
 
 - [Vercel Serverless Functions](https://vercel.com/docs/functions)
