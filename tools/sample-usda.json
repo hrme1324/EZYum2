@@ -1,0 +1,28 @@
+[
+  {
+    "title": "Roasted Veggie Medley",
+    "ingredients": ["2 cups broccoli florets", "1 cup sliced carrots", "1 tbsp olive oil", "salt", "pepper"],
+    "instructions": [
+      "Preheat oven to 400°F (205°C).",
+      "Toss vegetables with olive oil, salt, and pepper.",
+      "Spread on a baking sheet.",
+      "Roast 18-20 minutes until tender."
+    ],
+    "total_time_min": 25,
+    "image_url": "https://example.com/image.jpg",
+    "source_url": "https://theicn.org/example",
+    "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    "license": "Public Domain"
+  },
+  {
+    "title": "Quick Bean Salad",
+    "ingredients": ["1 can black beans", "1 cup corn", "1 diced tomato", "1 tbsp lime juice", "salt"],
+    "instructions": [
+      "Drain and rinse beans.",
+      "Combine with corn and tomato.",
+      "Add lime juice and salt, toss to coat."
+    ],
+    "total_time_min": 10,
+    "license": "Public Domain"
+  }
+]

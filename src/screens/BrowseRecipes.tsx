@@ -11,6 +11,7 @@ const BrowseRecipes: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedDifficulty, setSelectedDifficulty] = useState<'All' | 'Easy' | 'Medium' | 'Hard'>('All');
 
   const categories = [
     { id: 'all', name: 'All Recipes', emoji: '🍽️' },
@@ -140,6 +141,11 @@ const BrowseRecipes: React.FC = () => {
             recipe.name.toLowerCase().includes(selectedCategory.toLowerCase())
         );
 
+  const difficultyFiltered =
+    selectedDifficulty === 'All'
+      ? filteredRecipes
+      : filteredRecipes.filter((r) => (r.difficulty || 'Medium') === selectedDifficulty);
+
   return (
     <div className="min-h-screen bg-off-white p-4">
       <div className="max-w-md mx-auto">
@@ -186,6 +192,21 @@ const BrowseRecipes: React.FC = () => {
               </button>
             ))}
           </div>
+          <div className="flex gap-2 overflow-x-auto pt-3">
+            {(['All', 'Easy', 'Medium', 'Hard'] as const).map((diff) => (
+              <button
+                key={diff}
+                onClick={() => setSelectedDifficulty(diff)}
+                className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
+                  selectedDifficulty === diff
+                    ? 'bg-rich-charcoal text-white'
+                    : 'bg-white text-rich-charcoal border border-gray-200'
+                }`}
+              >
+                {diff}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Loading State */}
@@ -216,7 +237,7 @@ const BrowseRecipes: React.FC = () => {
               <>
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-medium text-rich-charcoal">
-                    {filteredRecipes.length} Recipes
+                    {difficultyFiltered.length} Recipes
                   </h2>
                   <button
                     onClick={loadRandomRecipes}
@@ -226,7 +247,7 @@ const BrowseRecipes: React.FC = () => {
                   </button>
                 </div>
                 <div className="space-y-4">
-                  {filteredRecipes.map((recipe, index) => (
+                  {difficultyFiltered.map((recipe, index) => (
                     <motion.div
                       key={recipe.id}
                       initial={{ opacity: 0, y: 20 }}

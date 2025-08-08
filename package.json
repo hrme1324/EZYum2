@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "type": "module",
   "engines": {
-    "node": "18.x"
+    "node": "22.x"
   },
   "scripts": {
     "dev": "vite",
@@ -16,7 +16,11 @@
     "pre-commit": "npm run lint && npm run type-check && npm run build",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "tools:ingest:usda": "tsx tools/ingest-usda.ts",
+    "tools:ingest:hf": "tsx tools/ingest-hf.ts",
+    "api:dev": "vercel dev",
+    "tools:test:difficulty": "tsx tools/test-difficulty.ts"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
@@ -35,6 +39,7 @@
     "date-fns": "^3.0.6",
     "framer-motion": "^10.18.0",
     "lucide-react": "^0.303.0",
+    "p-retry": "^6.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.48.2",
@@ -59,7 +64,11 @@
     "postcss": "^8.4.32",
     "prettier": "^3.1.1",
     "tailwindcss": "^3.3.6",
+    "tsx": "^4.7.1",
     "typescript": "^5.2.2",
     "vite": "^5.0.8"
+  },
+  "husky": {
+    "skipCI": true
   }
 }

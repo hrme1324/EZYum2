@@ -15,6 +15,7 @@ export interface Recipe {
   websiteUrl?: string;
   cookingTime?: string;
   difficulty?: 'Easy' | 'Medium' | 'Hard';
+  license?: string;
 }
 
 interface QuickAction {
@@ -263,6 +264,21 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+          {/* License/Source caption (if present in upstream data) */}
+          {(recipe as any).license && (
+            <div className="mt-3 pt-3 border-t border-gray-200 text-[11px] text-soft-taupe">
+              License: {(recipe as any).license}
+              {(recipe as any).websiteUrl && (
+                <>
+                  {' '}
+                  • Source:{' '}
+                  <a href={(recipe as any).websiteUrl} target="_blank" rel="noopener noreferrer" className="underline">
+                    link
+                  </a>
+                </>
+              )}
             </div>
           )}
         </motion.div>

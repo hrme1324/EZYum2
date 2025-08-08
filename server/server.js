@@ -9,6 +9,7 @@ const PORT = process.env.PORT || 3001;
 // Security middleware
 app.use(helmet());
 app.use(express.json({ limit: '10mb' }));
+app.use(express.text({ type: ['application/x-ndjson', 'text/plain'], limit: '50mb' }));
 
 // CORS configuration
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
@@ -154,6 +155,81 @@ app.get('/api/recipes/random', async (req, res) => {
   } catch (error) {
     console.error('MealDB API error:', error);
     res.status(500).json({ error: 'Failed to get random recipe' });
+  }
+});
+
+// Ingestion endpoint for NDJSON of normalized recipes
+app.post('/api/recipes/ingest', async (req, res) => {
+  try {
+    if (process.env.INGEST_ADMIN_SECRET) {
+      const provided = req.headers['x-admin-secret'];
+      if (provided !== process.env.INGEST_ADMIN_SECRET) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+    }
+    // Accept NDJSON in req.body as string when content-type is application/x-ndjson
+    const raw = typeof req.body === 'string' ? req.body : '';
+    const lines = raw.split('\n').filter((l) => l.trim().length > 0);
+    if (lines.length === 0) {
+      return res.status(400).json({ error: 'Empty NDJSON body' });
+    }
+
+    const records = lines.map((l, i) => {
+      try {
+        return JSON.parse(l);
+      } catch (e) {
+        throw new Error(`Invalid JSON on line ${i + 1}`);
+      }
+    });
+
+    // License allowlist
+    const allowed = new Set(['Public Domain', 'CC0', 'CC-BY 4.0', 'CC-BY 3.0']);
+    for (const r of records) {
+      if (!r.license || !allowed.has(r.license)) {
+        return res.status(400).json({ error: `Blocked by license policy: ${r.title || 'unknown'}` });
+      }
+    }
+
+    const { createClient } = require('@supabase/supabase-js');
+    const url = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !serviceKey) {
+      return res.status(500).json({ error: 'Supabase server credentials not configured' });
+    }
+
+    const supabase = createClient(url, serviceKey);
+
+    // Map to backend schema (global catalog seed => user_id null)
+    const payload = records.map((r) => ({
+      user_id: null,
+      name: r.title,
+      category: null,
+      area: null,
+      instructions: Array.isArray(r.instructions) ? r.instructions.join('\n') : null,
+      image: r.image_url ?? null,
+      tags: [],
+      ingredients: Array.isArray(r.ingredients)
+        ? r.ingredients.map((s) => ({ name: s, measure: '' }))
+        : [],
+      video_url: r.video_url ?? null,
+      website_url: r.source_url ?? null,
+      cooking_time: r.cook_time_min != null ? `${r.cook_time_min} min` : null,
+      difficulty: (r.difficulty || 'medium').toString().charAt(0).toUpperCase() + (r.difficulty || 'medium').toString().slice(1),
+      source_type: 'usda',
+      mealdb_id: null,
+      license: r.license,
+    }));
+
+    // Perform upsert on name + source_type to avoid duplicates
+    const { error } = await supabase.from('recipes').upsert(payload, { onConflict: 'name,source_type' });
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+
+    return res.json({ ok: true, count: payload.length });
+  } catch (e) {
+    console.error('Ingest error:', e);
+    return res.status(500).json({ error: 'Failed to ingest recipes' });
   }
 });
 

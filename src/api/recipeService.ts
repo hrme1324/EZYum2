@@ -44,6 +44,7 @@ export class RecipeService {
           mealdb_id: recipe.mealdb_id,
           created_at: recipe.created_at,
           updated_at: recipe.updated_at,
+          license: recipe.license,
         })) || []
       );
     } catch (error) {

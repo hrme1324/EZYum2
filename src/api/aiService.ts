@@ -1,7 +1,7 @@
 import { Recipe } from '../components/RecipeCard';
 
 // For local development: http://localhost:3001/api
-// For Vercel deployment: /api (relative path)
+// For Vercel deployment: /api (relative path - will be rewritten to backend)
 const BACKEND_URL =
   import.meta.env.VITE_BACKEND_URL || (import.meta.env.DEV ? 'http://localhost:3001/api' : '/api');
 
@@ -45,6 +45,7 @@ const formatMealDBMeal = (meal: any): Recipe => {
     ingredients: extractIngredients(meal),
     cookingTime: '30 min', // Default since MealDB doesn't provide this
     difficulty: 'Medium' as 'Easy' | 'Medium' | 'Hard', // Default since MealDB doesn't provide this
+    license: undefined,
   };
 };
 
@@ -54,9 +55,7 @@ export class RecipeService {
    */
   static async searchRecipes(query: string): Promise<Recipe[]> {
     try {
-      const response = await fetch(
-        `${BACKEND_URL}/recipes/search?query=${encodeURIComponent(query)}`
-      );
+      const response = await fetch(`${BACKEND_URL}/recipes/search?query=${encodeURIComponent(query)}`);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
