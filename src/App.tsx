@@ -1,4 +1,4 @@
-import { Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import LoadingSpinner from './components/LoadingSpinner';
 import Navigation from './components/Navigation';
 import AuthCallback from './screens/AuthCallback';
@@ -38,6 +38,8 @@ function App() {
         <Route path="/recipes" element={<RecipeHub />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
+        {/* Catch-all route for 404s - redirect to home */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <Navigation />
     </div>
