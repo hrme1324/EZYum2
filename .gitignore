@@ -294,3 +294,7 @@ temp/
 # large data files
 *.csv
 *.csv.gz
+
+# large data files
+*.csv
+*.csv.gz
