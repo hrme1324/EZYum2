@@ -290,3 +290,7 @@ public
 tmp/
 temp/
 .vercel
+
+# large data files
+*.csv
+*.csv.gz
