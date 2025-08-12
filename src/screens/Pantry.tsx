@@ -6,6 +6,7 @@ import { BarcodeService } from '../api/barcodeService';
 import { PantryService } from '../api/pantryService';
 import { useAuthStore } from '../state/authStore';
 import { PantryItem } from '../types';
+import { logger } from '../utils/logger';
 
 const Pantry: React.FC = () => {
   const { user } = useAuthStore();
@@ -40,27 +41,27 @@ const Pantry: React.FC = () => {
     { id: 'other', name: 'Other', emoji: '📦' },
   ];
 
-  // Load pantry items on component mount
-  useEffect(() => {
-    if (user) {
-      loadPantryItems();
-    }
-  }, [user]);
-
   const loadPantryItems = async () => {
     if (!user) return;
 
-    setLoading(true);
     try {
+      setLoading(true);
       const items = await PantryService.getPantryItems(user.id);
-      setPantryItems(items);
+      setPantryItems(items || []);
     } catch (error) {
-      console.error('Error loading pantry items:', error);
+      logger.error('Error loading pantry items:', error);
       toast.error('Failed to load pantry items');
     } finally {
       setLoading(false);
     }
   };
+
+  // Load pantry items when user changes
+  useEffect(() => {
+    if (user) {
+      loadPantryItems();
+    }
+  }, [user, loadPantryItems]);
 
   const filteredItems = pantryItems.filter((item) => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -109,7 +110,7 @@ const Pantry: React.FC = () => {
         toast.error('Product not found. Try manual entry.');
       }
     } catch (error) {
-      console.error('Barcode scan error:', error);
+      logger.error('Error scanning barcode:', error);
       toast.error('Failed to scan barcode');
     } finally {
       setIsScanning(false);
@@ -140,7 +141,7 @@ const Pantry: React.FC = () => {
         toast.error('Failed to add item');
       }
     } catch (error) {
-      console.error('Error adding item:', error);
+      logger.error('Error adding pantry item:', error);
       toast.error('Failed to add item');
     }
   };
@@ -172,7 +173,7 @@ const Pantry: React.FC = () => {
 
       if (updatedItem) {
         setPantryItems((prev) =>
-          prev.map((item) => (item.id === editingItem.id ? updatedItem : item))
+          prev.map((item) => (item.id === editingItem.id ? updatedItem : item)),
         );
         setShowEditModal(false);
         setEditingItem(null);
@@ -182,7 +183,7 @@ const Pantry: React.FC = () => {
         toast.error('Failed to update item');
       }
     } catch (error) {
-      console.error('Error updating item:', error);
+      logger.error('Error updating pantry item:', error);
       toast.error('Failed to update item');
     }
   };
@@ -199,7 +200,7 @@ const Pantry: React.FC = () => {
         toast.error('Failed to remove item');
       }
     } catch (error) {
-      console.error('Error deleting item:', error);
+      logger.error('Error deleting pantry item:', error);
       toast.error('Failed to remove item');
     }
   };
@@ -214,7 +215,7 @@ const Pantry: React.FC = () => {
         videoRef.current.srcObject = stream;
       }
     } catch (error) {
-      console.error('Camera error:', error);
+      logger.error('Camera error:', error);
       toast.error('Camera access denied');
     }
   };

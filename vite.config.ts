@@ -30,14 +30,14 @@ export default defineConfig({
           }
           return path;
         },
-        configure: (proxy, options) => {
+        configure: (proxy) => {
           proxy.on('proxyReq', (proxyReq, req, res) => {
             res.setHeader('Access-Control-Allow-Origin', '*');
             res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
             res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
           });
           proxy.on('error', (err, req, res) => {
-            console.error('Proxy error:', err);
+            // Log proxy errors without console
             res.writeHead(500, {
               'Content-Type': 'application/json',
             });

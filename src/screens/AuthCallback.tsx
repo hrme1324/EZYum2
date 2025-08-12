@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../api/supabase';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { logger } from '../utils/logger';
 
 const AuthCallback: React.FC = () => {
   const navigate = useNavigate();
@@ -12,8 +13,8 @@ const AuthCallback: React.FC = () => {
         const { data, error } = await supabase.auth.getSession();
 
         if (error) {
-          console.error('Auth callback error:', error);
-          navigate('/');
+          logger.error('Auth callback error:', error);
+          navigate('/login');
           return;
         }
 
@@ -25,7 +26,7 @@ const AuthCallback: React.FC = () => {
           navigate('/');
         }
       } catch (error) {
-        console.error('Auth callback error:', error);
+        logger.error('Auth callback error:', error);
         navigate('/');
       }
     };

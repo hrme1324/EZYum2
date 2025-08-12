@@ -1,4 +1,5 @@
 import { GroceryItem } from '../types';
+import { logger } from '../utils/logger';
 import { supabase } from './supabase';
 
 export class GroceryService {
@@ -7,7 +8,7 @@ export class GroceryService {
    */
   static async getGroceryList(userId: string): Promise<GroceryItem[]> {
     try {
-      console.log('Fetching grocery list for user:', userId);
+      logger.log('Fetching grocery list for user:', userId);
 
       const { data, error } = await supabase
         .from('grocery_lists')
@@ -19,14 +20,14 @@ export class GroceryService {
         .maybeSingle(); // Changed from .single() to .maybeSingle()
 
       if (error) {
-        console.error('Error fetching grocery list:', error);
+        logger.error('Error fetching grocery list:', error);
         return [];
       }
 
-      console.log('Grocery list data:', data);
+      logger.log('Grocery list data:', data);
       return data?.items || [];
     } catch (error) {
-      console.error('Grocery service error:', error);
+      logger.error('Grocery service error:', error);
       return [];
     }
   }
@@ -36,7 +37,7 @@ export class GroceryService {
    */
   static async saveGroceryList(userId: string, items: GroceryItem[]): Promise<boolean> {
     try {
-      console.log('Saving grocery list for user:', userId, 'with items:', items.length);
+      logger.log('Saving grocery list for user:', userId, 'with items:', items.length);
 
       // First, mark any existing active lists as inactive
       const { error: updateError } = await supabase
@@ -46,7 +47,7 @@ export class GroceryService {
         .eq('status', 'active');
 
       if (updateError) {
-        console.error('Error updating existing lists:', updateError);
+        logger.error('Error updating existing lists:', updateError);
         // Continue anyway, might be no existing lists
       }
 
@@ -58,14 +59,14 @@ export class GroceryService {
       });
 
       if (error) {
-        console.error('Error saving grocery list:', error);
+        logger.error('Error saving grocery list:', error);
         return false;
       }
 
-      console.log('Grocery list saved successfully');
+      logger.log('Grocery list saved successfully');
       return true;
     } catch (error) {
-      console.error('Grocery service error:', error);
+      logger.error('Grocery service error:', error);
       return false;
     }
   }
@@ -86,7 +87,7 @@ export class GroceryService {
       const updatedItems = [...currentItems, item];
       return await this.saveGroceryList(userId, updatedItems);
     } catch (error) {
-      console.error('Error adding grocery item:', error);
+      logger.error('Error adding grocery item:', error);
       return false;
     }
   }
@@ -100,7 +101,7 @@ export class GroceryService {
       const updatedItems = currentItems.filter((_, index) => index !== itemIndex);
       return await this.saveGroceryList(userId, updatedItems);
     } catch (error) {
-      console.error('Error removing grocery item:', error);
+      logger.error('Error removing grocery item:', error);
       return false;
     }
   }
@@ -112,11 +113,11 @@ export class GroceryService {
     try {
       const currentItems = await this.getGroceryList(userId);
       const updatedItems = currentItems.map((item, index) =>
-        index === itemIndex ? { ...item, checked: !item.checked } : item
+        index === itemIndex ? { ...item, checked: !item.checked } : item,
       );
       return await this.saveGroceryList(userId, updatedItems);
     } catch (error) {
-      console.error('Error toggling grocery item:', error);
+      logger.error('Error toggling grocery item:', error);
       return false;
     }
   }
@@ -130,7 +131,7 @@ export class GroceryService {
       const updatedItems = currentItems.filter((item) => !item.checked);
       return await this.saveGroceryList(userId, updatedItems);
     } catch (error) {
-      console.error('Error clearing completed items:', error);
+      logger.error('Error clearing completed items:', error);
       return false;
     }
   }

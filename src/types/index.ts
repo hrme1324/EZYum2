@@ -10,6 +10,9 @@ export interface UserSettings {
   id: string;
   user_id: string;
   time_budget: number;
+  preferred_cuisines?: string[];
+  max_ingredients?: number;
+  max_steps?: number;
   notifications_enabled: boolean;
   dark_mode: boolean;
   meal_reminders: boolean;
@@ -49,21 +52,31 @@ export interface PantryItem {
 // Recipe types
 export interface Recipe {
   id: string;
-  user_id: string;
+  user_id?: string;
   name: string;
-  source_url?: string;
+  category?: string;
+  area?: string;
+  instructions?: string;
+  image?: string;
+  tags?: string[];
   ingredients: Ingredient[];
-  cook_time: number; // in minutes
-  equipment: string[];
-  instructions: string[];
-  image_url?: string;
+  videoUrl?: string;
+  websiteUrl?: string;
+  cookingTime?: string;
+  difficulty?: 'Easy' | 'Medium' | 'Hard';
+  sourceType?: 'user' | 'mealdb' | 'usda';
+  mealdbId?: string;
+  ingredientsCount?: number;
+  stepsCount?: number;
+  hasVideo?: boolean;
+  license?: string;
   created_at: string;
+  updated_at?: string;
 }
 
 export interface Ingredient {
   name: string;
-  amount: number;
-  unit: string;
+  measure: string;
 }
 
 // Meal types

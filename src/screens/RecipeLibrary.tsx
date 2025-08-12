@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { RecipeService, UserRecipe } from '../api/recipeService';
 import { useAuthStore } from '../state/authStore';
+import { logger } from '../utils/logger';
 
 const RecipeLibrary: React.FC = () => {
   const { user } = useAuthStore();
@@ -26,17 +27,12 @@ const RecipeLibrary: React.FC = () => {
     cookingTime: '',
     difficulty: 'Easy' as 'Easy' | 'Medium' | 'Hard',
     tags: [] as string[],
+    created_at: new Date().toISOString(),
   });
 
   const [currentIngredient, setCurrentIngredient] = useState('');
   const [currentMeasure, setCurrentMeasure] = useState('');
   const [currentTag, setCurrentTag] = useState('');
-
-  useEffect(() => {
-    if (user) {
-      loadUserRecipes();
-    }
-  }, [user]);
 
   const loadUserRecipes = async () => {
     if (!user) return;
@@ -46,12 +42,19 @@ const RecipeLibrary: React.FC = () => {
       const userRecipes = await RecipeService.getUserRecipes();
       setRecipes(userRecipes);
     } catch (error) {
-      console.error('Error loading user recipes:', error);
+      logger.error('Error loading user recipes:', error);
       toast.error('Failed to load recipes');
     } finally {
       setLoading(false);
     }
   };
+
+  // Load user recipes when user changes
+  useEffect(() => {
+    if (user) {
+      loadUserRecipes();
+    }
+  }, [user, loadUserRecipes]);
 
   const addIngredient = () => {
     if (currentIngredient.trim() && currentMeasure.trim()) {
@@ -117,13 +120,14 @@ const RecipeLibrary: React.FC = () => {
           cookingTime: '',
           difficulty: 'Easy',
           tags: [],
+          created_at: new Date().toISOString(),
         });
         toast.success('Recipe saved successfully!');
       } else {
         toast.error('Failed to save recipe');
       }
     } catch (error) {
-      console.error('Error saving recipe:', error);
+      logger.error('Error saving recipe:', error);
       toast.error('Failed to save recipe');
     }
   };
@@ -138,7 +142,7 @@ const RecipeLibrary: React.FC = () => {
         toast.error('Failed to delete recipe');
       }
     } catch (error) {
-      console.error('Error deleting recipe:', error);
+      logger.error('Error deleting recipe:', error);
       toast.error('Failed to delete recipe');
     }
   };
@@ -152,7 +156,7 @@ const RecipeLibrary: React.FC = () => {
     (recipe) =>
       recipe.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (recipe.category && recipe.category.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (recipe.area && recipe.area.toLowerCase().includes(searchQuery.toLowerCase()))
+      (recipe.area && recipe.area.toLowerCase().includes(searchQuery.toLowerCase())),
   );
 
   if (!user) {

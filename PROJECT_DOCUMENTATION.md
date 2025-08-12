@@ -38,11 +38,13 @@
 ### Deployment Architecture
 
 #### Development Environment
+
 - **Frontend:** Vite dev server on `http://localhost:3000`
 - **Backend:** Express.js server on `http://localhost:3001`
 - **Database:** Supabase (cloud)
 
 #### Production Environment (Vercel)
+
 - **Frontend:** Vercel static build deployment
 - **Backend:** Vercel serverless functions (converted from Express.js)
 - **Database:** Supabase (cloud)
@@ -85,6 +87,7 @@
 - **Health Checks:** `/api/health` endpoint for monitoring
 
 **API Endpoints:**
+
 - `GET /api/health` - Server health check
 - `POST /api/ai/recipe-suggestions` - OpenAI-powered recipe suggestions
 - `POST /api/ai/food-categorization` - Hugging Face food classification

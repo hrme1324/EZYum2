@@ -1,7 +1,7 @@
 import OpenAI from 'openai';
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
 export default async function handler(req, res) {
@@ -37,7 +37,8 @@ export default async function handler(req, res) {
       messages: [
         {
           role: 'system',
-          content: 'You are a helpful cooking assistant. Provide recipe suggestions in JSON format.',
+          content:
+            'You are a helpful cooking assistant. Provide recipe suggestions in JSON format.',
         },
         {
           role: 'user',

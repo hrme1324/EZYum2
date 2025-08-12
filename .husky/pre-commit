@@ -21,16 +21,10 @@ if git diff --cached | grep -E "(VITE_SUPABASE_URL|VITE_SUPABASE_ANON_KEY|VITE_O
   exit 1
 fi
 
-# Run linting
-npm run lint
+# Run lint-staged (Prettier first, then ESLint on staged files only)
+npx lint-staged
 
-# Run type checking
+# Run type checking (this is fast and doesn't conflict with formatting)
 npm run type-check
-
-# Check formatting
-npm run format:check
-
-# Build check
-npm run build
 
 echo "✅ All checks passed!"

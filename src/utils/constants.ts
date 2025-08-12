@@ -1,3 +1,5 @@
+import { logger } from './logger';
+
 // App constants
 export const APP_NAME = 'Ezyum';
 export const APP_DESCRIPTION = 'Smart meal planning for students';
@@ -123,7 +125,7 @@ export const getAuthBaseUrl = (): string => {
   const viteSiteUrl = import.meta.env.VITE_SITE_URL;
 
   // Debug logging
-  console.log('🔍 Auth URL Detection:', {
+  logger.log('🔍 Auth URL Detection:', {
     currentHostname,
     currentOrigin,
     isDev,
@@ -134,46 +136,48 @@ export const getAuthBaseUrl = (): string => {
 
   // Check for environment variable first
   if (viteSiteUrl) {
-    console.log('✅ Using VITE_SITE_URL:', viteSiteUrl);
+    logger.log('✅ Using VITE_SITE_URL:', viteSiteUrl);
     return viteSiteUrl;
   }
 
   // Check if we're on a known production domain (regardless of dev mode)
   if (currentHostname === 'ezyum.com' || currentHostname === 'www.ezyum.com') {
-    console.log('✅ Using production domain:', `https://${currentHostname}`);
+    logger.log('✅ Using production domain:', `https://${currentHostname}`);
     return `https://${currentHostname}`;
   }
 
   // Vercel deployments
   if (currentHostname.includes('vercel.app')) {
-    console.log('✅ Using Vercel domain:', currentOrigin);
+    logger.log('✅ Using Vercel domain:', currentOrigin);
     return currentOrigin;
   }
 
   // Check if this is a mobile device
-  const isMobile = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
+  const isMobile = (/(android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini)/i).test(
+    userAgent,
+  );
 
   // For mobile devices, if we can't determine the domain, default to ezyum.com
   if (isMobile && (currentHostname === '' || currentHostname === 'localhost')) {
-    console.log('📱 Mobile device detected, using default ezyum.com domain');
+    logger.log('📱 Mobile device detected, using default ezyum.com domain');
     return 'https://ezyum.com';
   }
 
   // Local development (only if we're actually on localhost)
   if (currentHostname === 'localhost' || currentHostname === '127.0.0.1') {
-    console.log('🖥️ Local development detected:', 'http://localhost:3000');
+    logger.log('🖥️ Local development detected:', 'http://localhost:3000');
     return 'http://localhost:3000';
   }
 
   // If we're in dev mode but not on localhost, we might be accessing a local build
   // that's being served from a different domain
   if (isDev) {
-    console.log('🖥️ Dev mode but not localhost, using localhost:3000');
+    logger.log('🖥️ Dev mode but not localhost, using localhost:3000');
     return 'http://localhost:3000';
   }
 
   // Default fallback to ezyum.com
-  console.log('🔄 Using fallback domain: https://ezyum.com');
+  logger.log('🔄 Using fallback domain: https://ezyum.com');
   return 'https://ezyum.com';
 };
 

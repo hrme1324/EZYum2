@@ -33,7 +33,7 @@ export default async function handler(req, res) {
           Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
           'Content-Type': 'application/json',
         },
-      }
+      },
     );
 
     res.json({ categories: response.data });

@@ -1,4 +1,5 @@
 import { Meal, Recipe } from '../types';
+import { logger } from '../utils/logger';
 import { supabase } from './supabase';
 
 export class MealService {
@@ -15,13 +16,13 @@ export class MealService {
         .order('meal_type');
 
       if (error) {
-        console.error('Error fetching meals:', error);
+        logger.error('Error fetching meals:', error);
         return [];
       }
 
       return data || [];
     } catch (error) {
-      console.error('Meal service error:', error);
+      logger.error('Meal service error:', error);
       return [];
     }
   }
@@ -32,7 +33,7 @@ export class MealService {
   static async getMealsForDateRange(
     userId: string,
     startDate: string,
-    endDate: string
+    endDate: string,
   ): Promise<Meal[]> {
     try {
       const { data, error } = await supabase
@@ -45,13 +46,13 @@ export class MealService {
         .order('meal_type');
 
       if (error) {
-        console.error('Error fetching meals for date range:', error);
+        logger.error('Error fetching meals for date range:', error);
         return [];
       }
 
       return data || [];
     } catch (error) {
-      console.error('Meal service error:', error);
+      logger.error('Meal service error:', error);
       return [];
     }
   }
@@ -67,20 +68,20 @@ export class MealService {
           `
           *,
           recipe:recipes(*)
-        `
+        `,
         )
         .eq('user_id', userId)
         .order('date', { ascending: false })
         .order('meal_type');
 
       if (error) {
-        console.error('Error fetching all meals:', error);
+        logger.error('Error fetching all meals:', error);
         return [];
       }
 
       return data || [];
     } catch (error) {
-      console.error('Meal service error:', error);
+      logger.error('Meal service error:', error);
       return [];
     }
   }
@@ -90,14 +91,14 @@ export class MealService {
    */
   static async addMeal(
     userId: string,
-    meal: Omit<Meal, 'id' | 'user_id' | 'created_at'>
+    meal: Omit<Meal, 'id' | 'user_id' | 'created_at'>,
   ): Promise<Meal | null> {
     try {
       // Handle MealDB recipe IDs (strings) vs UUID recipe IDs
       let recipeId = meal.recipe_id;
 
       // If recipe_id is a MealDB ID (numeric string), we need to find the corresponding recipe in our database
-      if (recipeId && /(^\d+$)/.test(recipeId)) {
+      if (recipeId && (/(^\d+$)/).test(recipeId)) {
         // This is a MealDB ID, find the corresponding recipe in our database
         const { data: recipeData } = await supabase
           .from('recipes')
@@ -110,7 +111,7 @@ export class MealService {
           recipeId = recipeData.id;
         } else {
           // Recipe not found in our database, skip adding the meal
-          console.warn(`Recipe with MealDB ID ${recipeId} not found in user's recipes`);
+          logger.warn(`Recipe with MealDB ID ${recipeId} not found in user's recipes`);
           return null;
         }
       }
@@ -129,13 +130,13 @@ export class MealService {
         .single();
 
       if (error) {
-        console.error('Error adding meal:', error);
+        logger.error('Error adding meal:', error);
         return null;
       }
 
       return data;
     } catch (error) {
-      console.error('Meal service error:', error);
+      logger.error('Meal service error:', error);
       return null;
     }
   }
@@ -146,7 +147,7 @@ export class MealService {
   static async updateMeal(
     userId: string,
     mealId: string,
-    updates: Partial<Meal>
+    updates: Partial<Meal>,
   ): Promise<Meal | null> {
     try {
       const { data, error } = await supabase
@@ -158,13 +159,13 @@ export class MealService {
         .single();
 
       if (error) {
-        console.error('Error updating meal:', error);
+        logger.error('Error updating meal:', error);
         return null;
       }
 
       return data;
     } catch (error) {
-      console.error('Meal service error:', error);
+      logger.error('Meal service error:', error);
       return null;
     }
   }
@@ -181,13 +182,13 @@ export class MealService {
         .eq('user_id', userId);
 
       if (error) {
-        console.error('Error deleting meal:', error);
+        logger.error('Error deleting meal:', error);
         return false;
       }
 
       return true;
     } catch (error) {
-      console.error('Meal service error:', error);
+      logger.error('Meal service error:', error);
       return false;
     }
   }
@@ -204,13 +205,13 @@ export class MealService {
         .order('name');
 
       if (error) {
-        console.error('Error fetching recipes:', error);
+        logger.error('Error fetching recipes:', error);
         return [];
       }
 
       return data || [];
     } catch (error) {
-      console.error('Meal service error:', error);
+      logger.error('Meal service error:', error);
       return [];
     }
   }
@@ -220,32 +221,34 @@ export class MealService {
    */
   static async addRecipe(
     userId: string,
-    recipe: Omit<Recipe, 'id' | 'user_id' | 'created_at'>
+    recipe: Omit<Recipe, 'id' | 'user_id' | 'created_at'>,
   ): Promise<Recipe | null> {
     try {
-      const { data, error } = await supabase
-        .from('recipes')
-        .insert({
-          user_id: userId,
-          name: recipe.name,
-          source_url: recipe.source_url,
-          ingredients: recipe.ingredients,
-          cook_time: recipe.cook_time,
-          equipment: recipe.equipment,
-          instructions: recipe.instructions,
-          image_url: recipe.image_url,
-        })
-        .select()
-        .single();
+      const recipeData = {
+        user_id: userId,
+        name: recipe.name,
+        category: recipe.category,
+        area: recipe.area,
+        instructions: recipe.instructions,
+        ingredients: recipe.ingredients,
+        image: recipe.image,
+        videoUrl: recipe.videoUrl,
+        websiteUrl: recipe.websiteUrl,
+        cookingTime: recipe.cookingTime,
+        difficulty: recipe.difficulty,
+        tags: recipe.tags,
+        created_at: new Date().toISOString(), // Add missing created_at field
+      };
+      const { data, error } = await supabase.from('recipes').insert(recipeData).select().single();
 
       if (error) {
-        console.error('Error adding recipe:', error);
+        logger.error('Error adding recipe:', error);
         return null;
       }
 
       return data;
     } catch (error) {
-      console.error('Meal service error:', error);
+      logger.error('Meal service error:', error);
       return null;
     }
   }
@@ -263,7 +266,7 @@ export class MealService {
       const { data, error } = await supabase.from('meals').select('status').eq('user_id', userId);
 
       if (error) {
-        console.error('Error fetching meal stats:', error);
+        logger.error('Error fetching meal stats:', error);
         return {
           totalMeals: 0,
           plannedMeals: 0,
@@ -275,12 +278,12 @@ export class MealService {
       const meals = data || [];
       return {
         totalMeals: meals.length,
-        plannedMeals: meals.filter((m) => m.status === 'planned').length,
-        cookedMeals: meals.filter((m) => m.status === 'cooked').length,
-        skippedMeals: meals.filter((m) => m.status === 'skipped').length,
+        plannedMeals: meals.filter((m: any) => m.status === 'planned').length,
+        cookedMeals: meals.filter((m: any) => m.status === 'cooked').length,
+        skippedMeals: meals.filter((m: any) => m.status === 'skipped').length,
       };
     } catch (error) {
-      console.error('Meal service error:', error);
+      logger.error('Meal service error:', error);
       return {
         totalMeals: 0,
         plannedMeals: 0,

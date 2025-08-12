@@ -1,4 +1,5 @@
 import { UserAllergen, UserAppliance, UserSettings } from '../types';
+import { logger } from '../utils/logger';
 import { supabase } from './supabase';
 
 export class SettingsService {
@@ -14,7 +15,7 @@ export class SettingsService {
         .maybeSingle(); // Use maybeSingle instead of single to handle no rows
 
       if (error) {
-        console.error('Error fetching user settings:', error);
+        logger.error('Error fetching user settings:', error);
         return null;
       }
 
@@ -32,7 +33,7 @@ export class SettingsService {
 
       return data;
     } catch (error) {
-      console.error('Settings service error:', error);
+      logger.error('Settings service error:', error);
       return null;
     }
   }
@@ -42,7 +43,7 @@ export class SettingsService {
    */
   static async upsertUserSettings(
     userId: string,
-    settings: Partial<UserSettings>
+    settings: Partial<UserSettings>,
   ): Promise<UserSettings | null> {
     try {
       const { data, error } = await supabase
@@ -56,13 +57,13 @@ export class SettingsService {
         .single();
 
       if (error) {
-        console.error('Error upserting user settings:', error);
+        logger.error('Error upserting user settings:', error);
         return null;
       }
 
       return data;
     } catch (error) {
-      console.error('Settings service error:', error);
+      logger.error('Settings service error:', error);
       return null;
     }
   }
@@ -88,13 +89,13 @@ export class SettingsService {
         .single();
 
       if (error) {
-        console.error('Error initializing default settings:', error);
+        logger.error('Error initializing default settings:', error);
         return null;
       }
 
       return data;
     } catch (error) {
-      console.error('Settings service error:', error);
+      logger.error('Settings service error:', error);
       return null;
     }
   }
@@ -111,13 +112,13 @@ export class SettingsService {
         .order('allergen_name');
 
       if (error) {
-        console.error('Error fetching user allergens:', error);
+        logger.error('Error fetching user allergens:', error);
         return [];
       }
 
       return data || [];
     } catch (error) {
-      console.error('Settings service error:', error);
+      logger.error('Settings service error:', error);
       return [];
     }
   }
@@ -127,7 +128,7 @@ export class SettingsService {
    */
   static async addUserAllergen(
     userId: string,
-    allergen: Omit<UserAllergen, 'id' | 'user_id' | 'created_at'>
+    allergen: Omit<UserAllergen, 'id' | 'user_id' | 'created_at'>,
   ): Promise<UserAllergen | null> {
     try {
       const { data, error } = await supabase
@@ -141,13 +142,13 @@ export class SettingsService {
         .single();
 
       if (error) {
-        console.error('Error adding user allergen:', error);
+        logger.error('Error adding user allergen:', error);
         return null;
       }
 
       return data;
     } catch (error) {
-      console.error('Settings service error:', error);
+      logger.error('Settings service error:', error);
       return null;
     }
   }
@@ -164,13 +165,13 @@ export class SettingsService {
         .eq('user_id', userId);
 
       if (error) {
-        console.error('Error removing user allergen:', error);
+        logger.error('Error removing user allergen:', error);
         return false;
       }
 
       return true;
     } catch (error) {
-      console.error('Settings service error:', error);
+      logger.error('Settings service error:', error);
       return false;
     }
   }
@@ -187,13 +188,13 @@ export class SettingsService {
         .order('appliance_name');
 
       if (error) {
-        console.error('Error fetching user appliances:', error);
+        logger.error('Error fetching user appliances:', error);
         return [];
       }
 
       return data || [];
     } catch (error) {
-      console.error('Settings service error:', error);
+      logger.error('Settings service error:', error);
       return [];
     }
   }
@@ -203,7 +204,7 @@ export class SettingsService {
    */
   static async addUserAppliance(
     userId: string,
-    appliance: Omit<UserAppliance, 'id' | 'user_id' | 'created_at'>
+    appliance: Omit<UserAppliance, 'id' | 'user_id' | 'created_at'>,
   ): Promise<UserAppliance | null> {
     try {
       const { data, error } = await supabase
@@ -217,13 +218,13 @@ export class SettingsService {
         .single();
 
       if (error) {
-        console.error('Error adding user appliance:', error);
+        logger.error('Error adding user appliance:', error);
         return null;
       }
 
       return data;
     } catch (error) {
-      console.error('Settings service error:', error);
+      logger.error('Settings service error:', error);
       return null;
     }
   }
@@ -240,13 +241,13 @@ export class SettingsService {
         .eq('user_id', userId);
 
       if (error) {
-        console.error('Error removing user appliance:', error);
+        logger.error('Error removing user appliance:', error);
         return false;
       }
 
       return true;
     } catch (error) {
-      console.error('Settings service error:', error);
+      logger.error('Settings service error:', error);
       return false;
     }
   }

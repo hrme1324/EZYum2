@@ -28,13 +28,13 @@ app.use(
       }
     },
     credentials: true,
-  })
+  }),
 );
 
 // Check for required API keys
 const requiredKeys = ['OPENAI_API_KEY', 'HUGGINGFACE_API_KEY'];
 const missingKeys = requiredKeys.filter(
-  (key) => !process.env[key] || process.env[key].includes('your_')
+  (key) => !process.env[key] || process.env[key].includes('your_'),
 );
 if (missingKeys.length > 0) {
   console.warn('⚠️  Missing or placeholder API keys:', missingKeys.join(', '));
@@ -111,7 +111,7 @@ app.post('/api/ai/food-categorization', async (req, res) => {
           Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
           'Content-Type': 'application/json',
         },
-      }
+      },
     );
 
     res.json({ categories: response.data });
@@ -186,7 +186,9 @@ app.post('/api/recipes/ingest', async (req, res) => {
     const allowed = new Set(['Public Domain', 'CC0', 'CC-BY 4.0', 'CC-BY 3.0']);
     for (const r of records) {
       if (!r.license || !allowed.has(r.license)) {
-        return res.status(400).json({ error: `Blocked by license policy: ${r.title || 'unknown'}` });
+        return res
+          .status(400)
+          .json({ error: `Blocked by license policy: ${r.title || 'unknown'}` });
       }
     }
 
@@ -214,14 +216,18 @@ app.post('/api/recipes/ingest', async (req, res) => {
       video_url: r.video_url ?? null,
       website_url: r.source_url ?? null,
       cooking_time: r.cook_time_min != null ? `${r.cook_time_min} min` : null,
-      difficulty: (r.difficulty || 'medium').toString().charAt(0).toUpperCase() + (r.difficulty || 'medium').toString().slice(1),
+      difficulty:
+        (r.difficulty || 'medium').toString().charAt(0).toUpperCase() +
+        (r.difficulty || 'medium').toString().slice(1),
       source_type: 'usda',
       mealdb_id: null,
       license: r.license,
     }));
 
     // Perform upsert on name + source_type to avoid duplicates
-    const { error } = await supabase.from('recipes').upsert(payload, { onConflict: 'name,source_type' });
+    const { error } = await supabase
+      .from('recipes')
+      .upsert(payload, { onConflict: 'name,source_type' });
     if (error) {
       return res.status(500).json({ error: error.message });
     }

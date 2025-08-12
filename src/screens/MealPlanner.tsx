@@ -4,9 +4,9 @@ import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { RecipeService } from '../api/aiService';
 import { MealService } from '../api/mealService';
-import { Recipe } from '../components/RecipeCard';
 import { useAuthStore } from '../state/authStore';
-import { Meal } from '../types';
+import { Meal, Recipe } from '../types';
+import { logger } from '../utils/logger';
 
 const MealPlanner: React.FC = () => {
   const { user } = useAuthStore();
@@ -26,27 +26,23 @@ const MealPlanner: React.FC = () => {
     { id: 'snack', name: 'Snack', emoji: '🍎', color: 'bg-green-100' },
   ];
 
-  useEffect(() => {
-    if (user) {
-      loadMeals();
-    }
-  }, [user, selectedDate]);
-
   const loadMeals = async () => {
     if (!user) return;
 
     try {
-      const mealsData = await MealService.getMealsForDateRange(
-        user.id,
-        selectedDate.toISOString().split('T')[0],
-        selectedDate.toISOString().split('T')[0]
-      );
+      const mealsData = await MealService.getAllMeals(user.id);
       setMeals(mealsData || []);
     } catch (error) {
-      console.error('Error loading meals:', error);
+      logger.error('Error loading meals:', error);
       toast.error('Failed to load meals');
     }
   };
+
+  useEffect(() => {
+    if (user) {
+      loadMeals();
+    }
+  }, [user, loadMeals]);
 
   const searchRecipes = async () => {
     if (!searchQuery.trim()) return;
@@ -56,7 +52,7 @@ const MealPlanner: React.FC = () => {
       const recipesData = await RecipeService.searchRecipes(searchQuery);
       setBrowseRecipes(recipesData || []);
     } catch (error) {
-      console.error('Error searching recipes:', error);
+      logger.error('Error searching recipes:', error);
       toast.error('Failed to search recipes');
     } finally {
       setBrowseLoading(false);
@@ -92,7 +88,7 @@ const MealPlanner: React.FC = () => {
         toast.error('Failed to add meal');
       }
     } catch (error) {
-      console.error('Error adding meal:', error);
+      logger.error('Error adding meal:', error);
       toast.error('Failed to add meal');
     } finally {
       setDraggedRecipe(null);
@@ -111,7 +107,7 @@ const MealPlanner: React.FC = () => {
         toast.error('Failed to delete meal');
       }
     } catch (error) {
-      console.error('Error deleting meal:', error);
+      logger.error('Error deleting meal:', error);
       toast.error('Failed to delete meal');
     }
   };

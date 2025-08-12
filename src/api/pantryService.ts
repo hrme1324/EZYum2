@@ -1,4 +1,5 @@
 import { PantryItem } from '../types';
+import { logger } from '../utils/logger';
 import { supabase } from './supabase';
 
 export class PantryService {
@@ -14,13 +15,13 @@ export class PantryService {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Error fetching pantry items:', error);
+        logger.error('Error fetching pantry items:', error);
         return [];
       }
 
       return data || [];
     } catch (error) {
-      console.error('Pantry service error:', error);
+      logger.error('Pantry service error:', error);
       return [];
     }
   }
@@ -30,7 +31,7 @@ export class PantryService {
    */
   static async addPantryItem(
     userId: string,
-    item: Omit<PantryItem, 'id' | 'user_id' | 'created_at'>
+    item: Omit<PantryItem, 'id' | 'user_id' | 'created_at'>,
   ): Promise<PantryItem | null> {
     try {
       const { data, error } = await supabase
@@ -47,13 +48,13 @@ export class PantryService {
         .single();
 
       if (error) {
-        console.error('Error adding pantry item:', error);
+        logger.error('Error adding pantry item:', error);
         return null;
       }
 
       return data;
     } catch (error) {
-      console.error('Pantry service error:', error);
+      logger.error('Pantry service error:', error);
       return null;
     }
   }
@@ -64,7 +65,7 @@ export class PantryService {
   static async updatePantryItem(
     userId: string,
     itemId: string,
-    updates: Partial<PantryItem>
+    updates: Partial<PantryItem>,
   ): Promise<PantryItem | null> {
     try {
       const { data, error } = await supabase
@@ -76,13 +77,13 @@ export class PantryService {
         .single();
 
       if (error) {
-        console.error('Error updating pantry item:', error);
+        logger.error('Error updating pantry item:', error);
         return null;
       }
 
       return data;
     } catch (error) {
-      console.error('Pantry service error:', error);
+      logger.error('Pantry service error:', error);
       return null;
     }
   }
@@ -99,13 +100,13 @@ export class PantryService {
         .eq('user_id', userId);
 
       if (error) {
-        console.error('Error deleting pantry item:', error);
+        logger.error('Error deleting pantry item:', error);
         return false;
       }
 
       return true;
     } catch (error) {
-      console.error('Pantry service error:', error);
+      logger.error('Pantry service error:', error);
       return false;
     }
   }
@@ -126,7 +127,7 @@ export class PantryService {
         if (!item.expiration) return false;
         const expiration = new Date(item.expiration);
         const diffDays = Math.ceil(
-          (expiration.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+          (expiration.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
         );
         return diffDays <= 7 && diffDays >= 0;
       }).length;
@@ -136,7 +137,7 @@ export class PantryService {
           acc[item.category] = (acc[item.category] || 0) + 1;
           return acc;
         },
-        {} as Record<string, number>
+        {} as Record<string, number>,
       );
 
       return {
@@ -145,7 +146,7 @@ export class PantryService {
         categories,
       };
     } catch (error) {
-      console.error('Error getting pantry stats:', error);
+      logger.error('Error getting pantry stats:', error);
       return {
         totalItems: 0,
         expiringSoon: 0,

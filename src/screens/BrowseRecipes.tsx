@@ -1,17 +1,21 @@
 import { motion } from 'framer-motion';
-import { ChefHat, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { RecipeService as MealDBService } from '../api/aiService';
+import { RecipeService } from '../api/aiService';
 import { RecipeService as UserRecipeService } from '../api/recipeService';
-import RecipeCard, { Recipe } from '../components/RecipeCard';
+import RecipeCard from '../components/RecipeCard';
+import { Recipe } from '../types';
+import { logger } from '../utils/logger';
 
 const BrowseRecipes: React.FC = () => {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [selectedDifficulty, setSelectedDifficulty] = useState<'All' | 'Easy' | 'Medium' | 'Hard'>('All');
+  const [selectedDifficulty, setSelectedDifficulty] = useState<'All' | 'Easy' | 'Medium' | 'Hard'>(
+    'All',
+  );
 
   const categories = [
     { id: 'all', name: 'All Recipes', emoji: '🍽️' },
@@ -31,35 +35,57 @@ const BrowseRecipes: React.FC = () => {
     setLoading(true);
     try {
       const randomRecipes = await Promise.all([
-        MealDBService.getRandomRecipe(),
-        MealDBService.getRandomRecipe(),
-        MealDBService.getRandomRecipe(),
-        MealDBService.getRandomRecipe(),
-        MealDBService.getRandomRecipe(),
-        MealDBService.getRandomRecipe(),
+        RecipeService.getRandomRecipe(),
+        RecipeService.getRandomRecipe(),
+        RecipeService.getRandomRecipe(),
+        RecipeService.getRandomRecipe(),
+        RecipeService.getRandomRecipe(),
+        RecipeService.getRandomRecipe(),
       ]);
 
       const validRecipes = randomRecipes
-        .filter((recipe) => recipe !== null)
-        .map((recipe: any) => ({
-          id: recipe.id,
-          name: recipe.name,
-          category: recipe.category,
-          area: recipe.area,
-          instructions: Array.isArray(recipe.instructions)
-            ? recipe.instructions.join('\n')
-            : recipe.instructions,
-          image: recipe.image,
-          tags: recipe.tags,
-          ingredients: recipe.ingredients,
-          videoUrl: recipe.videoUrl,
-          websiteUrl: recipe.websiteUrl,
-          cookingTime: recipe.cookingTime,
-          difficulty: recipe.difficulty,
-        }));
+        .filter((recipe: any) => recipe !== null)
+        .flatMap((recipe: any) => {
+          if (Array.isArray(recipe)) {
+            return recipe.map((r: any) => ({
+              id: r.idMeal || r.id,
+              name: r.strMeal || r.name,
+              category: r.strCategory || r.category,
+              area: r.strArea || r.area,
+              instructions: r.strInstructions || r.instructions,
+              image: r.strMealThumb || r.image,
+              tags: r.tags || [],
+              ingredients: r.ingredients || [],
+              videoUrl: r.videoUrl || '',
+              websiteUrl: r.websiteUrl || '',
+              cookingTime: r.cookingTime || '',
+              difficulty: r.difficulty || 'Easy',
+              created_at: new Date().toISOString(),
+            }));
+          } else if (recipe) {
+            return [
+              {
+                id: recipe.idMeal || recipe.id,
+                name: recipe.strMeal || recipe.name,
+                category: recipe.strCategory || recipe.category,
+                area: recipe.strArea || recipe.area,
+                instructions: recipe.strInstructions || recipe.instructions,
+                image: recipe.strMealThumb || recipe.image,
+                tags: recipe.tags || [],
+                ingredients: recipe.ingredients || [],
+                videoUrl: recipe.videoUrl || '',
+                websiteUrl: recipe.websiteUrl || '',
+                cookingTime: recipe.cookingTime || '',
+                difficulty: recipe.difficulty || 'Easy',
+                created_at: new Date().toISOString(),
+              },
+            ];
+          }
+          return [];
+        });
       setRecipes(validRecipes);
     } catch (error) {
-      console.error('Error loading random recipes:', error);
+      logger.error('Error loading random recipes:', error);
       toast.error('Failed to load recipes');
     } finally {
       setLoading(false);
@@ -74,30 +100,29 @@ const BrowseRecipes: React.FC = () => {
 
     setLoading(true);
     try {
-      const searchResults = await MealDBService.searchRecipes(searchQuery);
+      const searchResults = await RecipeService.searchRecipes(searchQuery);
       // Convert the search results to the RecipeCard Recipe format
       const convertedRecipes: Recipe[] = (searchResults || []).map((recipe: any) => ({
-        id: recipe.id,
-        name: recipe.name,
-        category: recipe.category,
-        area: recipe.area,
-        instructions: Array.isArray(recipe.instructions)
-          ? recipe.instructions.join('\n')
-          : recipe.instructions,
-        image: recipe.image,
-        tags: recipe.tags,
-        ingredients: recipe.ingredients,
-        videoUrl: recipe.videoUrl,
-        websiteUrl: recipe.websiteUrl,
-        cookingTime: recipe.cookingTime,
-        difficulty: recipe.difficulty,
+        id: recipe.idMeal || recipe.id,
+        name: recipe.strMeal || recipe.name,
+        category: recipe.strCategory || recipe.category,
+        area: recipe.strArea || recipe.area,
+        instructions: recipe.strInstructions || recipe.instructions,
+        image: recipe.strMealThumb || recipe.image,
+        tags: recipe.tags || [],
+        ingredients: recipe.ingredients || [],
+        videoUrl: recipe.videoUrl || '',
+        websiteUrl: recipe.websiteUrl || '',
+        cookingTime: recipe.cookingTime || '',
+        difficulty: recipe.difficulty || 'Easy',
+        created_at: new Date().toISOString(), // Add missing created_at field
       }));
       setRecipes(convertedRecipes);
       if (convertedRecipes.length === 0) {
         toast.error('No recipes found for your search');
       }
     } catch (error) {
-      console.error('Error searching recipes:', error);
+      logger.error('Error searching recipes:', error);
       toast.error('Failed to search recipes');
     } finally {
       setLoading(false);
@@ -127,7 +152,7 @@ const BrowseRecipes: React.FC = () => {
         toast.error('Failed to save recipe');
       }
     } catch (error) {
-      console.error('Error saving recipe:', error);
+      logger.error('Error saving recipe:', error);
       toast.error('Failed to save recipe');
     }
   };
@@ -138,7 +163,7 @@ const BrowseRecipes: React.FC = () => {
       : recipes.filter(
           (recipe) =>
             recipe.category?.toLowerCase().includes(selectedCategory.toLowerCase()) ||
-            recipe.name.toLowerCase().includes(selectedCategory.toLowerCase())
+            recipe.name.toLowerCase().includes(selectedCategory.toLowerCase()),
         );
 
   const difficultyFiltered =
@@ -221,7 +246,6 @@ const BrowseRecipes: React.FC = () => {
           <div className="space-y-4">
             {filteredRecipes.length === 0 ? (
               <div className="text-center py-12">
-                <ChefHat className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-rich-charcoal mb-2">No recipes found</h3>
                 <p className="text-soft-taupe">
                   Try adjusting your search or browse our random recipes
@@ -254,7 +278,11 @@ const BrowseRecipes: React.FC = () => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.1 }}
                     >
-                      <RecipeCard recipe={recipe} onSave={handleSaveRecipe} showActions={true} />
+                      <RecipeCard
+                        recipe={recipe}
+                        onSave={() => handleSaveRecipe(recipe)}
+                        showActions={true}
+                      />
                     </motion.div>
                   ))}
                 </div>

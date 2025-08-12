@@ -1,4 +1,5 @@
-import { Recipe } from '../components/RecipeCard';
+import { Recipe } from '../types';
+import { logger } from '../utils/logger';
 
 // For local development: http://localhost:3001/api
 // For Vercel deployment: /api (relative path - will be rewritten to backend)
@@ -6,7 +7,7 @@ const BACKEND_URL =
   import.meta.env.VITE_BACKEND_URL || (import.meta.env.DEV ? 'http://localhost:3001/api' : '/api');
 
 // Debug logging
-console.log('🔧 API Configuration:', {
+logger.log('🔧 API Configuration:', {
   VITE_BACKEND_URL: import.meta.env.VITE_BACKEND_URL,
   isDev: import.meta.env.DEV,
   hostname: window.location.hostname,
@@ -46,6 +47,7 @@ const formatMealDBMeal = (meal: any): Recipe => {
     cookingTime: '30 min', // Default since MealDB doesn't provide this
     difficulty: 'Medium' as 'Easy' | 'Medium' | 'Hard', // Default since MealDB doesn't provide this
     license: undefined,
+    created_at: new Date().toISOString(), // Add missing created_at field
   };
 };
 
@@ -55,7 +57,9 @@ export class RecipeService {
    */
   static async searchRecipes(query: string): Promise<Recipe[]> {
     try {
-      const response = await fetch(`${BACKEND_URL}/recipes/search?query=${encodeURIComponent(query)}`);
+      const response = await fetch(
+        `${BACKEND_URL}/recipes/search?query=${encodeURIComponent(query)}`,
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -74,7 +78,7 @@ export class RecipeService {
         return [];
       }
     } catch (error) {
-      console.error('Error searching recipes:', error);
+      logger.error('Error searching recipes:', error);
       return [];
     }
   }
@@ -103,7 +107,7 @@ export class RecipeService {
         return null;
       }
     } catch (error) {
-      console.error('Error getting random recipe:', error);
+      logger.error('Error getting random recipe:', error);
       return null;
     }
   }
@@ -116,7 +120,7 @@ export class RecipeService {
       const response = await fetch(`${BACKEND_URL}/health`);
       return response.ok;
     } catch (error) {
-      console.error('Backend health check failed:', error);
+      logger.error('Backend health check failed:', error);
       return false;
     }
   }

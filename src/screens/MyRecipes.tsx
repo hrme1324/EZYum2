@@ -1,10 +1,11 @@
 import { motion } from 'framer-motion';
-import { ChefHat, Edit, Globe, Play, Plus, Trash2, X } from 'lucide-react';
+import { ChefHat, Edit3, Globe, Play, Plus, Trash2, X } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { RecipeService } from '../api/recipeService';
-import { Recipe } from '../components/RecipeCard';
 import { useAuthStore } from '../state/authStore';
+import { Recipe } from '../types';
+import { logger } from '../utils/logger';
 
 interface MyRecipe extends Recipe {
   videoUrl?: string;
@@ -37,20 +38,14 @@ const MyRecipes: React.FC = () => {
     image: '',
   });
 
-  useEffect(() => {
-    if (user) {
-      loadRecipes();
-    }
-  }, [user]);
-
   const loadRecipes = async () => {
     if (!user) return;
 
     try {
       setLoading(true);
-      const userRecipes = await RecipeService.getUserRecipes();
+      const recipesData = await RecipeService.getUserRecipes();
       // Transform UserRecipe to MyRecipe format
-      const transformedRecipes: MyRecipe[] = (userRecipes || []).map((recipe) => ({
+      const transformedRecipes: MyRecipe[] = (recipesData || []).map((recipe) => ({
         ...recipe,
         difficulty: recipe.difficulty || 'Easy',
         tags: recipe.tags || [],
@@ -58,25 +53,44 @@ const MyRecipes: React.FC = () => {
         websiteUrl: recipe.websiteUrl || '',
         prepTime: '',
         servings: 4,
+        created_at: recipe.created_at,
       }));
       setRecipes(transformedRecipes);
     } catch (error) {
-      console.error('Error loading recipes:', error);
+      logger.error('Error loading recipes:', error);
       toast.error('Failed to load recipes');
     } finally {
       setLoading(false);
     }
   };
 
+  // Load recipes when user changes
+  useEffect(() => {
+    if (user) {
+      loadRecipes();
+    }
+  }, [user, loadRecipes]);
+
   const handleCreateRecipe = async () => {
     if (!user) return;
 
     try {
       const recipeData = {
-        ...newRecipe,
         user_id: user.id,
-        ingredients: newRecipe.ingredients.filter((ing) => ing.name.trim() && ing.measure.trim()),
-        tags: newRecipe.tags.filter((tag) => tag.trim()),
+        ingredients: newRecipe.ingredients,
+        tags: newRecipe.tags,
+        name: newRecipe.name,
+        category: newRecipe.category,
+        area: newRecipe.area,
+        instructions: newRecipe.instructions,
+        videoUrl: newRecipe.videoUrl,
+        websiteUrl: newRecipe.websiteUrl,
+        prepTime: newRecipe.prepTime,
+        servings: newRecipe.servings,
+        difficulty: newRecipe.difficulty,
+        cookingTime: newRecipe.cookingTime,
+        image: newRecipe.image,
+        created_at: new Date().toISOString(), // Add missing created_at field
       };
 
       const success = await RecipeService.saveRecipe(recipeData);
@@ -89,7 +103,7 @@ const MyRecipes: React.FC = () => {
         toast.error('Failed to create recipe');
       }
     } catch (error) {
-      console.error('Error creating recipe:', error);
+      logger.error('Error creating recipe:', error);
       toast.error('Failed to create recipe');
     }
   };
@@ -117,7 +131,7 @@ const MyRecipes: React.FC = () => {
         toast.error('Failed to update recipe');
       }
     } catch (error) {
-      console.error('Error updating recipe:', error);
+      logger.error('Error updating recipe:', error);
       toast.error('Failed to update recipe');
     }
   };
@@ -134,7 +148,7 @@ const MyRecipes: React.FC = () => {
         toast.error('Failed to delete recipe');
       }
     } catch (error) {
-      console.error('Error deleting recipe:', error);
+      logger.error('Error deleting recipe:', error);
       toast.error('Failed to delete recipe');
     }
   };
@@ -195,7 +209,7 @@ const MyRecipes: React.FC = () => {
     setNewRecipe((prev) => ({
       ...prev,
       ingredients: prev.ingredients.map((ing, i) =>
-        i === index ? { ...ing, [field]: value } : ing
+        i === index ? { ...ing, [field]: value } : ing,
       ),
     }));
   };
@@ -482,7 +496,7 @@ const MyRecipes: React.FC = () => {
                     <button
                       onClick={() => {
                         const input = document.querySelector(
-                          'input[placeholder="Add tag..."]'
+                          'input[placeholder="Add tag..."]',
                         ) as HTMLInputElement;
                         if (input && input.value.trim()) {
                           addTag(input.value);
@@ -685,7 +699,7 @@ const MyRecipes: React.FC = () => {
                     onClick={() => startEditing(recipe)}
                     className="flex-1 py-2 px-3 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
                   >
-                    <Edit className="w-4 h-4 inline mr-1" />
+                    <Edit3 className="w-4 h-4 inline mr-1" />
                     Edit
                   </button>
                   <button

@@ -14,6 +14,7 @@ interface ImportMetaEnv {
   readonly PROD: boolean;
 }
 
+// eslint-disable-next-line no-unused-vars
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }

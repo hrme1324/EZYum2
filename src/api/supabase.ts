@@ -1,10 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
+import { logger } from '../utils/logger';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
 // Debug logging (always show in production to see what's available)
-console.log('🔍 Environment Variables Check:', {
+logger.log('🔍 Environment Variables Check:', {
   hasUrl: !!supabaseUrl,
   hasKey: !!supabaseAnonKey,
   urlLength: supabaseUrl?.length,
@@ -22,7 +23,7 @@ const fallbackKey = 'your_supabase_anon_key_here';
 const finalUrl = supabaseUrl || fallbackUrl;
 const finalKey = supabaseAnonKey || fallbackKey;
 
-console.log('🎯 Final Supabase Config:', {
+logger.log('🎯 Final Supabase Config:', {
   usingEnvVars: !!(supabaseUrl && supabaseAnonKey),
   usingFallbacks: !(supabaseUrl && supabaseAnonKey),
   finalUrl: finalUrl.substring(0, 30) + '...',

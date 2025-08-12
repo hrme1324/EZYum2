@@ -3,18 +3,23 @@ import {
   ChevronRight,
   Clock,
   Gamepad2,
+  Plus,
+  Search,
   ShoppingBag,
   SkipForward,
   Sparkles,
   Timer,
   Trophy,
   User,
+  X,
 } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import { PantryService } from '../api/pantryService';
 import { SettingsService } from '../api/settingsService';
 import { useAuthStore } from '../state/authStore';
+import { logger } from '../utils/logger';
 
 interface Meal {
   id: string;
@@ -24,10 +29,20 @@ interface Meal {
   difficulty: 'easy' | 'medium' | 'hard';
 }
 
+interface PantryStaple {
+  name: string;
+  category: string;
+  emoji: string;
+}
+
 const Onboarding: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [timeBudget, setTimeBudget] = useState(30);
-  const [selectedStaples, setSelectedStaples] = useState<string[]>([]);
+  const [selectedPantryItems, setSelectedPantryItems] = useState<PantryStaple[]>([]);
+  const [customPantryItems, setCustomPantryItems] = useState<string[]>([]);
+  const [showAddCustomItem, setShowAddCustomItem] = useState(false);
+  const [newCustomItem, setNewCustomItem] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   const [gameState, setGameState] = useState<'idle' | 'playing' | 'completed'>('idle');
   const [gameTime, setGameTime] = useState(30);
   const [selectedMeals, setSelectedMeals] = useState<Meal[]>([]);
@@ -37,25 +52,66 @@ const Onboarding: React.FC = () => {
   const navigate = useNavigate();
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const staples = [
-    'Eggs',
-    'Rice',
-    'Pasta',
-    'Beans',
-    'Chicken',
-    'Ground Beef',
-    'Onions',
-    'Garlic',
-    'Tomatoes',
-    'Cheese',
-    'Bread',
-    'Milk',
-    'Olive Oil',
-    'Butter',
-    'Flour',
-    'Sugar',
-    'Salt',
-    'Pepper',
+  // Comprehensive pantry staples with categories
+  const pantryStaples: PantryStaple[] = [
+    // Protein
+    { name: 'Eggs', category: 'protein', emoji: '🥚' },
+    { name: 'Chicken Breast', category: 'protein', emoji: '🍗' },
+    { name: 'Ground Beef', category: 'protein', emoji: '🥩' },
+    { name: 'Salmon', category: 'protein', emoji: '🐟' },
+    { name: 'Tofu', category: 'protein', emoji: '🧈' },
+    { name: 'Black Beans', category: 'protein', emoji: '🫘' },
+    { name: 'Chickpeas', category: 'protein', emoji: '🫘' },
+
+    // Grains
+    { name: 'Rice', category: 'grains', emoji: '🍚' },
+    { name: 'Pasta', category: 'grains', emoji: '🍝' },
+    { name: 'Bread', category: 'grains', emoji: '🍞' },
+    { name: 'Quinoa', category: 'grains', emoji: '🌾' },
+    { name: 'Oats', category: 'grains', emoji: '🥣' },
+    { name: 'Tortillas', category: 'grains', emoji: '🫓' },
+
+    // Vegetables
+    { name: 'Onions', category: 'vegetables', emoji: '🧅' },
+    { name: 'Garlic', category: 'vegetables', emoji: '🧄' },
+    { name: 'Tomatoes', category: 'vegetables', emoji: '🍅' },
+    { name: 'Spinach', category: 'vegetables', emoji: '🥬' },
+    { name: 'Bell Peppers', category: 'vegetables', emoji: '🫑' },
+    { name: 'Carrots', category: 'vegetables', emoji: '🥕' },
+    { name: 'Broccoli', category: 'vegetables', emoji: '🥦' },
+    { name: 'Mushrooms', category: 'vegetables', emoji: '🍄' },
+
+    // Fruits
+    { name: 'Bananas', category: 'fruits', emoji: '🍌' },
+    { name: 'Apples', category: 'fruits', emoji: '🍎' },
+    { name: 'Lemons', category: 'fruits', emoji: '🍋' },
+    { name: 'Avocados', category: 'fruits', emoji: '🥑' },
+    { name: 'Berries', category: 'fruits', emoji: '🫐' },
+
+    // Dairy
+    { name: 'Milk', category: 'dairy', emoji: '🥛' },
+    { name: 'Cheese', category: 'dairy', emoji: '🧀' },
+    { name: 'Yogurt', category: 'dairy', emoji: '🥛' },
+    { name: 'Butter', category: 'dairy', emoji: '🧈' },
+    { name: 'Cream', category: 'dairy', emoji: '🥛' },
+
+    // Condiments & Oils
+    { name: 'Olive Oil', category: 'condiments', emoji: '🫒' },
+    { name: 'Salt', category: 'condiments', emoji: '🧂' },
+    { name: 'Black Pepper', category: 'condiments', emoji: '🌶️' },
+    { name: 'Soy Sauce', category: 'condiments', emoji: '🍶' },
+    { name: 'Hot Sauce', category: 'condiments', emoji: '🌶️' },
+    { name: 'Ketchup', category: 'condiments', emoji: '🍅' },
+    { name: 'Mustard', category: 'condiments', emoji: '🟡' },
+
+    // Baking & Spices
+    { name: 'Flour', category: 'baking', emoji: '🌾' },
+    { name: 'Sugar', category: 'baking', emoji: '🍯' },
+    { name: 'Baking Soda', category: 'baking', emoji: '🧂' },
+    { name: 'Vanilla Extract', category: 'baking', emoji: '🌿' },
+    { name: 'Cinnamon', category: 'baking', emoji: '🌿' },
+    { name: 'Oregano', category: 'baking', emoji: '🌿' },
+    { name: 'Basil', category: 'baking', emoji: '🌿' },
   ];
 
   const meals: Meal[] = [
@@ -98,24 +154,20 @@ const Onboarding: React.FC = () => {
 
   // Game logic
   useEffect(() => {
-    if (gameState === 'playing') {
-      timerRef.current = setInterval(() => {
-        setGameTime((prev) => {
-          if (prev <= 1) {
-            setGameState('completed');
-            return 0;
-          }
-          return prev - 1;
-        });
+    if (gameState === 'playing' && gameTime > 0) {
+      timerRef.current = setTimeout(() => {
+        setGameTime(gameTime - 1);
       }, 1000);
+    } else if (gameTime === 0) {
+      setGameState('completed');
     }
 
     return () => {
       if (timerRef.current) {
-        clearInterval(timerRef.current);
+        clearTimeout(timerRef.current);
       }
     };
-  }, [gameState]);
+  }, [gameState, gameTime]);
 
   const startGame = () => {
     setGameState('playing');
@@ -126,25 +178,25 @@ const Onboarding: React.FC = () => {
   };
 
   const handleMealSelect = (meal: Meal) => {
-    if (gameState !== 'playing') return;
+    if (selectedMeals.some((m) => m.category === meal.category)) return;
 
-    const existingMeal = selectedMeals.find((m) => m.category === meal.category);
-    if (existingMeal) {
-      setSelectedMeals((prev) => prev.map((m) => (m.category === meal.category ? meal : m)));
-    } else {
-      setSelectedMeals((prev) => [...prev, meal]);
-    }
+    const newSelectedMeals = [...selectedMeals, meal];
+    setSelectedMeals(newSelectedMeals);
 
-    // Calculate score based on time and difficulty
-    const timeBonus = Math.max(0, 30 - meal.time);
-    const difficultyBonus =
-      meal.difficulty === 'easy' ? 10 : meal.difficulty === 'medium' ? 20 : 30;
-    const newScore = score + timeBonus + difficultyBonus;
-    setScore(newScore);
+    // Calculate score based on time only
+    let mealScore = 100;
+    if (meal.time <= 15) mealScore += 100; // Bonus for quick meals
+    if (meal.time <= 20) mealScore += 50; // Bonus for medium-quick meals
+    if (meal.time <= 25) mealScore += 25; // Small bonus for reasonable time meals
 
-    // Check if all categories are selected
-    if (selectedMeals.length >= 2) {
-      setGameState('completed');
+    setScore(score + mealScore);
+    setStreak(streak + 1);
+
+    // Check if all categories are filled
+    if (newSelectedMeals.length === 3) {
+      setTimeout(() => {
+        setGameState('completed');
+      }, 500);
     }
   };
 
@@ -152,12 +204,11 @@ const Onboarding: React.FC = () => {
     return meals.filter((meal) => meal.category === category);
   };
 
-  // Save user preferences when onboarding is completed
   const saveUserPreferences = async () => {
     if (!user) return;
 
     try {
-      // Save time budget setting
+      // Save user settings
       await SettingsService.upsertUserSettings(user.id, {
         time_budget: timeBudget,
         notifications_enabled: true,
@@ -166,28 +217,219 @@ const Onboarding: React.FC = () => {
         grocery_reminders: true,
       });
 
-      // Save selected staples as pantry items (you might want to create a pantry service for this)
-      // For now, we'll just save the preferences
+      // Save pantry items to database
+      const allPantryItems = [
+        ...selectedPantryItems.map((item) => ({
+          name: item.name,
+          category: item.category,
+          quantity: 1,
+          source: 'manual' as const,
+        })),
+        ...customPantryItems.map((name) => ({
+          name,
+          category: 'other',
+          quantity: 1,
+          source: 'manual' as const,
+        })),
+      ];
+
+      // Add each pantry item to the database
+      for (const item of allPantryItems) {
+        await PantryService.addPantryItem(user.id, item);
+      }
 
       toast.success('Preferences saved successfully!');
     } catch (error) {
-      console.error('Error saving preferences:', error);
+      logger.error('Error saving onboarding data:', error);
       toast.error('Failed to save preferences');
     }
   };
 
+  const addCustomPantryItem = () => {
+    if (newCustomItem.trim() && !customPantryItems.includes(newCustomItem.trim())) {
+      setCustomPantryItems([...customPantryItems, newCustomItem.trim()]);
+      setNewCustomItem('');
+      setShowAddCustomItem(false);
+    }
+  };
+
+  const removeCustomPantryItem = (item: string) => {
+    setCustomPantryItems(customPantryItems.filter((i) => i !== item));
+  };
+
+  const togglePantryItem = (item: PantryStaple) => {
+    setSelectedPantryItems((prev) =>
+      prev.some((i) => i.name === item.name)
+        ? prev.filter((i) => i.name !== item.name)
+        : [...prev, item],
+    );
+  };
+
   const steps = [
     {
-      title: 'How much time do you have?',
-      subtitle: "We'll help you save time in the kitchen",
+      title: "What's in your pantry?",
+      subtitle: 'Build your virtual pantry with ingredients you have',
+      icon: <ShoppingBag className="w-8 h-8" />,
+      component: (
+        <div className="space-y-6">
+          <div className="text-center">
+            <h3 className="text-2xl font-lora mb-2">Your Pantry</h3>
+            <p className="text-soft-taupe">Select ingredients you currently have at home</p>
+          </div>
+
+          {/* Custom item input */}
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setShowAddCustomItem(true)}
+              className="btn-secondary flex items-center space-x-2 px-4 py-2"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Custom Item</span>
+            </button>
+          </div>
+
+          {showAddCustomItem && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center space-x-2 p-3 bg-white rounded-lg border"
+            >
+              <input
+                type="text"
+                value={newCustomItem}
+                onChange={(e) => setNewCustomItem(e.target.value)}
+                placeholder="Enter ingredient name..."
+                className="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-coral-blush"
+                onKeyPress={(e) => e.key === 'Enter' && addCustomPantryItem()}
+              />
+              <button
+                onClick={addCustomPantryItem}
+                className="px-3 py-2 bg-coral-blush text-white rounded-lg hover:bg-coral-blush/90"
+              >
+                Add
+              </button>
+              <button
+                onClick={() => setShowAddCustomItem(false)}
+                className="px-2 py-2 text-gray-500 hover:text-gray-700"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </motion.div>
+          )}
+
+          {/* Custom items display */}
+          {customPantryItems.length > 0 && (
+            <div className="space-y-2">
+              <h4 className="font-medium text-rich-charcoal">Custom Items:</h4>
+              <div className="flex flex-wrap gap-2">
+                {customPantryItems.map((item) => (
+                  <motion.div
+                    key={item}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex items-center space-x-2 bg-coral-blush text-white px-3 py-2 rounded-lg"
+                  >
+                    <span>{item}</span>
+                    <button
+                      onClick={() => removeCustomPantryItem(item)}
+                      className="hover:bg-white/20 rounded-full p-1"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Search functionality */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <input
+              type="text"
+              placeholder="Search ingredients..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-coral-blush"
+            />
+          </div>
+
+          {/* Pantry staples grid */}
+          <div className="space-y-4 max-h-96 overflow-y-auto">
+            {['protein', 'grains', 'vegetables', 'fruits', 'dairy', 'condiments', 'baking'].map(
+              (category) => {
+                const categoryItems = pantryStaples.filter(
+                  (item) =>
+                    item.category === category &&
+                    (searchTerm === '' ||
+                      item.name.toLowerCase().includes(searchTerm.toLowerCase())),
+                );
+                const categoryEmoji = categoryItems[0]?.emoji || '📦';
+
+                if (categoryItems.length === 0) return null;
+
+                return (
+                  <div key={category} className="space-y-2">
+                    <h4 className="font-medium text-rich-charcoal capitalize flex items-center gap-2">
+                      <span>{categoryEmoji}</span>
+                      {category}
+                      <span className="text-sm text-soft-taupe">({categoryItems.length})</span>
+                    </h4>
+                    <div className="grid grid-cols-3 gap-2">
+                      {categoryItems.map((item) => (
+                        <motion.button
+                          key={item.name}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => togglePantryItem(item)}
+                          className={`p-3 rounded-lg border-2 transition-all duration-200 text-sm ${
+                            selectedPantryItems.some((i) => i.name === item.name)
+                              ? 'border-coral-blush bg-coral-blush text-white shadow-lg'
+                              : 'border-gray-200 hover:border-coral-blush hover:bg-coral-blush hover:bg-opacity-10'
+                          }`}
+                        >
+                          <div className="text-lg mb-1">{item.emoji}</div>
+                          <div className="font-medium">{item.name}</div>
+                        </motion.button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              },
+            )}
+          </div>
+
+          {selectedPantryItems.length > 0 || customPantryItems.length > 0 ? (
+            <div className="text-center p-4 bg-sage-leaf/10 rounded-lg">
+              <p className="text-sage-leaf font-medium">
+                Selected {selectedPantryItems.length + customPantryItems.length} items
+              </p>
+              <p className="text-sm text-soft-taupe mt-1">
+                Great start! This will help us suggest perfect recipes for you.
+              </p>
+            </div>
+          ) : (
+            <div className="text-center p-4 bg-orange-50 rounded-lg">
+              <p className="text-orange-600 font-medium">No items selected yet</p>
+              <p className="text-sm text-soft-taupe mt-1">
+                Select ingredients you have to get personalized recipe suggestions
+              </p>
+            </div>
+          )}
+        </div>
+      ),
+    },
+    {
+      title: 'Time Budget',
+      subtitle: 'How much time do you want to spend cooking?',
       icon: <Clock className="w-8 h-8" />,
       component: (
         <div className="space-y-6">
           <div className="text-center">
-            <h3 className="text-2xl font-lora mb-2">Time Budget</h3>
-            <p className="text-soft-taupe">How long does meal prep usually take?</p>
+            <h3 className="text-2xl font-lora mb-2">Your Cooking Time</h3>
+            <p className="text-soft-taupe">Set your daily cooking time budget</p>
           </div>
-          <div className="space-y-6">
+          <div className="space-y-4">
             <div className="relative">
               <input
                 type="range"
@@ -196,7 +438,7 @@ const Onboarding: React.FC = () => {
                 step="5"
                 value={timeBudget}
                 onChange={(e) => setTimeBudget(Number(e.target.value))}
-                className="w-full slider"
+                className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
               />
               <div className="flex justify-between text-xs text-soft-taupe mt-2">
                 <span>15 min</span>
@@ -214,45 +456,6 @@ const Onboarding: React.FC = () => {
               </p>
             </div>
           </div>
-        </div>
-      ),
-    },
-    {
-      title: "What's in your pantry?",
-      subtitle: 'Select your staple ingredients',
-      icon: <ShoppingBag className="w-8 h-8" />,
-      component: (
-        <div className="space-y-6">
-          <div className="text-center">
-            <h3 className="text-2xl font-lora mb-2">Pantry Staples</h3>
-            <p className="text-soft-taupe">Select what you usually have on hand</p>
-          </div>
-          <div className="grid grid-cols-3 gap-3 max-h-64 overflow-y-auto">
-            {staples.map((staple) => (
-              <motion.button
-                key={staple}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => {
-                  setSelectedStaples((prev) =>
-                    prev.includes(staple) ? prev.filter((s) => s !== staple) : [...prev, staple]
-                  );
-                }}
-                className={`p-3 rounded-lg border-2 transition-all duration-200 ${
-                  selectedStaples.includes(staple)
-                    ? 'border-coral-blush bg-coral-blush text-white shadow-lg'
-                    : 'border-gray-200 hover:border-coral-blush hover:bg-coral-blush hover:bg-opacity-10'
-                }`}
-              >
-                {staple}
-              </motion.button>
-            ))}
-          </div>
-          {selectedStaples.length > 0 && (
-            <div className="text-center">
-              <p className="text-sm text-soft-taupe">Selected {selectedStaples.length} staples</p>
-            </div>
-          )}
         </div>
       ),
     },
@@ -418,7 +621,7 @@ const Onboarding: React.FC = () => {
                     Speed: {30 - gameTime}s
                   </span>
                   <span className="bg-white bg-opacity-20 px-2 py-1 rounded">
-                    Accuracy: {Math.round((score / 300) * 100)}%
+                    Time Bonus: +{Math.round((score / 300) * 100)}%
                   </span>
                 </div>
               </motion.div>

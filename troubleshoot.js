@@ -90,7 +90,7 @@ console.log('\n🌐 Checking API connectivity...');
 try {
   const response = execSync(
     'curl -s -o /dev/null -w "%{http_code}" https://www.themealdb.com/api/json/v1/1/categories.php',
-    { encoding: 'utf8' }
+    { encoding: 'utf8' },
   );
   if (response.trim() === '200') {
     console.log('✅ MealDB API is accessible');

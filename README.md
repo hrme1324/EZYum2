@@ -53,11 +53,49 @@ npm run dev
 - **Settings Management** - User preferences and allergens
 - **Responsive Design** - Works on mobile and desktop
 
+### 🍳 Enhanced Recipe Features
+
+- **Recipe Hub** - Centralized recipe discovery and management
+- **Recipes Plus** - Premium recipes with video tutorials and external links
+- **Personalized "For You"** - AI-scored recommendations based on user preferences
+- **Smart Filtering** - Advanced search with ingredient/step limits and cuisine preferences
+- **Pagination** - Load 24 recipes at a time with cursor-based pagination
+- **Safe Ingredient Rendering** - Normalized ingredient display for various data formats
+
 ### 🤖 AI Features (with backend)
 
 - **Recipe Suggestions** - AI-powered recipe recommendations
 - **Food Categorization** - Automatic ingredient classification
 - **Smart Search** - Enhanced recipe search
+
+## 📊 Data Management
+
+### CSV Seeding Flow
+
+The app supports bulk recipe import through CSV files:
+
+1. **Upload CSV** → `staging_recipes_csv` table
+2. **Run Import Function** → `finish_recipe_seed_import_csv_easy()`
+3. **Database Normalization** → Converts ingredients to structured objects
+4. **Backfill Metadata** → Adds `ingredients_count`, `steps_count`, `has_video` fields
+
+### Recipe Personalization
+
+The "For You" section uses client-side scoring based on:
+
+- **Quick Recipes** (+3 points): Ingredients ≤ user's max_ingredients OR steps ≤ user's max_steps
+- **Cuisine Match** (+2 points): Category/area matches preferred_cuisines
+- **Video Content** (+1 point): Recipe includes video tutorial
+- **Allergen Filtering**: Automatically excludes recipes containing user's allergens
+
+### Filter System
+
+Advanced filtering with localStorage persistence:
+
+- **Search**: Debounced 300ms text search
+- **Quick Filters**: All, Quick, Video, Your Recipes, Plus
+- **Sliders**: Adjustable max ingredients (1-20) and max steps (1-15)
+- **Smart Defaults**: Uses user settings for initial values
 
 ## 🛠️ Tech Stack
 
@@ -172,22 +210,26 @@ For issues and questions:
 - Open an issue on GitHub
 
 ## Environment Variables (Frontend)
+
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
 - `VITE_SITE_URL` (prod: `https://ezyum.com`)
 - `VITE_BACKEND_URL` (dev only: `http://localhost:3001/api`)
 
 ## Environment Variables (Backend / Serverless)
+
 - `OPENAI_API_KEY`, `HUGGINGFACE_API_KEY`, `MEALDB_API_KEY`
 - `ALLOWED_ORIGINS` (e.g., `https://ezyum.com,http://localhost:3000`)
 - `NODE_ENV` (production in Vercel)
 
 ## Build & Deploy
+
 - Node.js enforced via `package.json` `engines: { "node": "18.x" }`.
 - Vercel configuration uses explicit builds and serverless route to `/api`.
 - GitHub Actions deploys using Vercel Action with CLI fallback. See `.github/workflows/ci.yml`.
 
 ## Known Fixes
+
 - MIME type error fixed via asset route in `vercel.json`.
 - `/api/recipes/random` 404 fixed via serverless export and route.
 - OAuth localhost redirect fixed via `VITE_SITE_URL` + Supabase config.

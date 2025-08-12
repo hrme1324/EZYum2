@@ -306,21 +306,25 @@ After fixing issues, verify:
 ## Production Errors and Fixes
 
 ### 1) Browser: Failed to load module script (MIME type text/html)
+
 - **Cause**: SPA catch‑all routed asset requests to `index.html`.
 - **Fix**: Add static asset route to `vercel.json` before catch‑all:
   - `{ "src": "/(.*\\..*)", "dest": "/$1" }`.
 
 ### 2) 404: `/api/recipes/random`
+
 - **Cause**: Frontend called `/api/*` but serverless was not correctly routed/exported.
 - **Fix**:
   - `vercel.json` route: `{ "src": "/api/(.*)", "dest": "/server/server.js" }`.
   - `server/server.js`: export app for Vercel: `module.exports = app;` and only `listen()` in non‑production.
 
 ### 3) OAuth redirect went to localhost
+
 - **Cause**: Hardcoded/implicit localhost redirect.
 - **Fix**: Use `VITE_SITE_URL` and `getAuthBaseUrl()`; ensure Supabase redirect URLs include `https://ezyum.com/auth/callback` & `http://localhost:3000/auth/callback`.
 
 ### 4) Vercel GitHub Action: "You must re-authenticate"
+
 - **Cause**: CLI lacked token in CI context.
 - **Fix**:
   - Provide `VERCEL_TOKEN` via env and action input.
@@ -329,15 +333,18 @@ After fixing issues, verify:
   - Verify `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` secrets.
 
 ### 5) ESLint/Prettier blocking CI
+
 - **Fixes**:
   - Relax overly strict ESLint rules; keep `wrap-regex` as warn.
   - Run `npm run lint:fix` and `prettier --write` locally.
 
 ## CI/CD Workflow (current)
+
 - No artifact upload/download; Vercel action builds itself.
 - Tokens passed via secrets; Node 18 enforced via `package.json` `engines`.
 
 ## Quick Validation
+
 - Frontend build: `npm run build` → dist created.
 - Health: `/api/health` returns `{ status: 'OK' }`.
 - Random recipe: `/api/recipes/random` returns JSON from MealDB.

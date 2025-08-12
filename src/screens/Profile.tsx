@@ -17,6 +17,7 @@ import toast from 'react-hot-toast';
 import { SettingsService } from '../api/settingsService';
 import { useAuthStore } from '../state/authStore';
 import { UserAllergen, UserAppliance, UserSettings } from '../types';
+import { logger } from '../utils/logger';
 
 const Profile: React.FC = () => {
   const { user, signOut } = useAuthStore();
@@ -39,13 +40,6 @@ const Profile: React.FC = () => {
     timeSaved: 12.5,
   };
 
-  // Load user data
-  useEffect(() => {
-    if (user) {
-      loadUserData();
-    }
-  }, [user]);
-
   const loadUserData = async () => {
     if (!user) return;
 
@@ -67,9 +61,16 @@ const Profile: React.FC = () => {
       setAllergens(userAllergens);
       setAppliances(userAppliances);
     } catch (error) {
-      console.error('Error loading user data:', error);
+      logger.error('Error loading user data:', error);
     }
   };
+
+  // Load user data when user changes
+  useEffect(() => {
+    if (user) {
+      loadUserData();
+    }
+  }, [user, loadUserData]);
 
   const updateSetting = useCallback(
     async (key: keyof UserSettings, value: any) => {
@@ -104,14 +105,14 @@ const Profile: React.FC = () => {
             toast.success('Settings updated');
           }
         } catch (error) {
-          console.error('Error updating settings:', error);
+          logger.error('Error updating settings:', error);
           toast.error('Failed to update settings');
         }
       }, 500); // 500ms debounce
 
       setUpdateTimeout(timeout);
     },
-    [user, settings, updateTimeout]
+    [user, settings, updateTimeout],
   );
 
   const addAllergen = async () => {
@@ -130,7 +131,7 @@ const Profile: React.FC = () => {
         toast.success('Allergen added');
       }
     } catch (error) {
-      console.error('Error adding allergen:', error);
+      logger.error('Error adding allergen:', error);
       toast.error('Failed to add allergen');
     }
   };
@@ -145,7 +146,7 @@ const Profile: React.FC = () => {
         toast.success('Allergen removed');
       }
     } catch (error) {
-      console.error('Error removing allergen:', error);
+      logger.error('Error removing allergen:', error);
       toast.error('Failed to remove allergen');
     }
   };
@@ -166,7 +167,7 @@ const Profile: React.FC = () => {
         toast.success('Appliance added');
       }
     } catch (error) {
-      console.error('Error adding appliance:', error);
+      logger.error('Error adding appliance:', error);
       toast.error('Failed to add appliance');
     }
   };
@@ -181,7 +182,7 @@ const Profile: React.FC = () => {
         toast.success('Appliance removed');
       }
     } catch (error) {
-      console.error('Error removing appliance:', error);
+      logger.error('Error removing appliance:', error);
       toast.error('Failed to remove appliance');
     }
   };
@@ -190,7 +191,8 @@ const Profile: React.FC = () => {
     try {
       await signOut();
     } catch (error) {
-      console.error('Error signing out:', error);
+      logger.error('Error signing out:', error);
+      toast.error('Failed to sign out');
     }
   };
 

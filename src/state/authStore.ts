@@ -1,14 +1,15 @@
-import { AuthChangeEvent, Session, User } from '@supabase/supabase-js';
+import { AuthChangeEvent, Session, Subscription, User } from '@supabase/supabase-js';
 import { create } from 'zustand';
 import { supabase } from '../api/supabase';
-import { getAuthBaseUrl } from '../utils/constants';
+import { logger } from '../utils/logger';
 
 interface AuthState {
   user: User | null;
   isLoading: boolean;
+  _subscription?: Subscription;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
-  setUser: (user: User | null) => void;
+  checkAuth: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -17,56 +18,58 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   signInWithGoogle: async () => {
     try {
-      // Use the utility function to get the correct base URL
-      const baseUrl = getAuthBaseUrl();
-      const redirectUrl = `${baseUrl}/auth/callback`;
-
-      console.log('🔐 Auth redirect URL:', redirectUrl);
-      console.log('📱 Device info:', {
-        userAgent: navigator.userAgent,
-        hostname: window.location.hostname,
-        origin: window.location.origin,
-        isDev: import.meta.env.DEV,
-        baseUrl,
-      });
-
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: redirectUrl,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          },
+          redirectTo: `${window.location.origin}/auth/callback`,
         },
       });
-      if (error) throw error;
+
+      if (error) {
+        logger.error('Error signing in with Google:', error);
+        throw error;
+      }
     } catch (error) {
-      console.error('Google sign in error:', error);
+      logger.error('Error in signInWithGoogle:', error);
       throw error;
     }
   },
 
   signOut: async () => {
     try {
-      await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        logger.error('Error signing out:', error);
+        throw error;
+      }
       set({ user: null });
     } catch (error) {
-      console.error('Sign out error:', error);
+      logger.error('Error in signOut:', error);
       throw error;
     }
   },
 
-  setUser: (user: User | null) => {
-    set({ user, isLoading: false });
+  checkAuth: async () => {
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      set({ user: session?.user ?? null, isLoading: false });
+
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange(
+        async (event: AuthChangeEvent, session: Session | null) => {
+          logger.log('Auth state changed:', event, session?.user?.id);
+          set({ user: session?.user ?? null, isLoading: false });
+        },
+      );
+
+      // Store subscription for cleanup
+      set({ _subscription: subscription });
+    } catch (error) {
+      logger.error('Error checking auth:', error);
+      set({ user: null, isLoading: false });
+    }
   },
 }));
-
-// Initialize auth state
-supabase.auth.getSession().then(({ data: { session } }: { data: { session: Session | null } }) => {
-  useAuthStore.getState().setUser(session?.user ?? null);
-});
-
-supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
-  useAuthStore.getState().setUser(session?.user ?? null);
-});

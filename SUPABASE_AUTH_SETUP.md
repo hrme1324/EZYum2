@@ -7,6 +7,7 @@
 Go to your Supabase project dashboard and configure the following:
 
 #### **Authentication > URL Configuration**
+
 - **Site URL**: `https://ezyum.com`
 - **Redirect URLs**: Add these URLs:
   ```
@@ -16,6 +17,7 @@ Go to your Supabase project dashboard and configure the following:
   ```
 
 #### **Authentication > Providers > Google**
+
 - **Enabled**: ✅ Yes
 - **Client ID**: Your Google OAuth Client ID
 - **Client Secret**: Your Google OAuth Client Secret
@@ -26,7 +28,9 @@ Go to your Supabase project dashboard and configure the following:
 In your Google Cloud Console:
 
 #### **OAuth 2.0 Client IDs > Authorized redirect URIs**
+
 Add these redirect URIs:
+
 ```
 https://ezyum.com/auth/callback
 http://localhost:3000/auth/callback
@@ -36,6 +40,7 @@ https://your-vercel-domain.vercel.app/auth/callback
 ### 3. Environment Variables
 
 #### **Frontend (.env.local)**
+
 ```bash
 VITE_SUPABASE_URL=https://whclrrwwnffirgcngeos.supabase.co
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
@@ -43,6 +48,7 @@ VITE_SITE_URL=https://ezyum.com
 ```
 
 #### **Backend (server/.env)**
+
 ```bash
 SUPABASE_URL=https://whclrrwwnffirgcngeos.supabase.co
 SUPABASE_ANON_KEY=your_supabase_anon_key
@@ -54,6 +60,7 @@ ALLOWED_ORIGINS=https://ezyum.com,http://localhost:3000
 In your Vercel dashboard, set these environment variables:
 
 #### **Frontend Variables**
+
 ```
 VITE_SUPABASE_URL=https://whclrrwwnffirgcngeos.supabase.co
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
@@ -61,6 +68,7 @@ VITE_SITE_URL=https://ezyum.com
 ```
 
 #### **Backend Variables**
+
 ```
 SUPABASE_URL=https://whclrrwwnffirgcngeos.supabase.co
 SUPABASE_ANON_KEY=your_supabase_anon_key
@@ -70,12 +78,14 @@ ALLOWED_ORIGINS=https://ezyum.com
 ## 🔍 Testing the Configuration
 
 ### Local Testing
+
 1. Start your local server: `npm run dev`
 2. Go to `http://localhost:3000`
 3. Click "Sign in with Google"
 4. Should redirect to `https://ezyum.com/auth/callback` after Google auth
 
 ### Production Testing
+
 1. Go to `https://ezyum.com`
 2. Click "Sign in with Google"
 3. Should redirect to `https://ezyum.com/auth/callback` after Google auth
@@ -83,17 +93,21 @@ ALLOWED_ORIGINS=https://ezyum.com
 ## 🚨 Common Issues
 
 ### Issue: Still redirecting to localhost
+
 **Solution**: Check that `VITE_SITE_URL=https://ezyum.com` is set in your environment variables
 
 ### Issue: "Invalid redirect URL" error
+
 **Solution**: Add `https://ezyum.com/auth/callback` to your Supabase redirect URLs
 
 ### Issue: Google OAuth error
+
 **Solution**: Add `https://ezyum.com/auth/callback` to your Google OAuth authorized redirect URIs
 
 ## 📱 Mobile Testing
 
 The app should now work correctly on mobile devices:
+
 - Access from phone: `https://ezyum.com`
 - Sign in with Google
 - Should redirect back to `https://ezyum.com` (not localhost)
@@ -101,6 +115,7 @@ The app should now work correctly on mobile devices:
 ## 🔧 Debug Information
 
 The app now includes comprehensive debugging. Check the browser console for:
+
 - `🔍 Auth URL Detection:` - Shows what domain is being detected
 - `✅ Using VITE_SITE_URL:` - Confirms the environment variable is being used
 - `🔐 Auth redirect URL:` - Shows the final redirect URL being sent to Supabase
@@ -116,6 +131,7 @@ The app now includes comprehensive debugging. Check the browser console for:
 - [ ] Production testing works correctly
 
 ## Redirect Issue Summary (Recorded)
+
 - Symptom: After Google sign‑in on `ezyum.com`, app redirected to `localhost`.
 - Root cause: Missing/incorrect redirect URL config and no `VITE_SITE_URL`.
 - Resolution:
@@ -126,6 +142,7 @@ The app now includes comprehensive debugging. Check the browser console for:
   - Use runtime detection to compute `redirectTo` via `getAuthBaseUrl()`.
 
 ### Quick Checklist
+
 - [ ] `VITE_SITE_URL` set in local `.env.local` and Vercel env.
 - [ ] Supabase redirect list updated (prod + local).
 - [ ] Google OAuth URIs updated (prod + local).

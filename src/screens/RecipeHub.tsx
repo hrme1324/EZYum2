@@ -1,20 +1,24 @@
 import { motion } from 'framer-motion';
-import { BookOpen, Calendar, Heart, RefreshCw, Search, Star } from 'lucide-react';
+import { BookOpen, Calendar, Heart, Plus, RefreshCw, Sparkles } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { RecipeService as MealDBService } from '../api/aiService';
 import { MealService } from '../api/mealService';
 import { RecipeService as UserRecipeService } from '../api/recipeService';
-import RecipeCard, { Recipe } from '../components/RecipeCard';
+import FilterBar from '../components/FilterBar';
+import RecipeCard from '../components/RecipeCard';
 import { useAuthStore } from '../state/authStore';
+import { Recipe } from '../types';
 import { IS_OFFLINE_MODE, MOCK_MEALS, MOCK_RECIPES } from '../utils/constants';
+import { logger } from '../utils/logger';
 
-type RecipeSource = 'discovery' | 'saved' | 'my-recipes' | 'all';
+type RecipeSource = 'discovery' | 'saved' | 'my-recipes' | 'all' | 'plus' | 'for-you';
 
 interface RecipeWithSource extends Recipe {
   id: string;
   source: RecipeSource;
   isSaved?: boolean;
+  score?: number;
+  created_at: string; // Ensure this is required
 }
 
 const RecipeHub: React.FC = () => {
@@ -22,15 +26,13 @@ const RecipeHub: React.FC = () => {
   const [recipes, setRecipes] = useState<RecipeWithSource[]>([]);
   const [savedRecipes, setSavedRecipes] = useState<RecipeWithSource[]>([]);
   const [weeklyRecipes, setWeeklyRecipes] = useState<RecipeWithSource[]>([]);
+  const [plusRecipes, setPlusRecipes] = useState<RecipeWithSource[]>([]);
+  const [forYouRecipes, setForYouRecipes] = useState<RecipeWithSource[]>([]);
   const [loading, setLoading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<RecipeSource>('all');
-
-  useEffect(() => {
-    if (user) {
-      loadAllRecipes();
-    }
-  }, [user]);
+  const [lastCreatedAt, setLastCreatedAt] = useState<string | undefined>();
+  const [hasMore, setHasMore] = useState(true);
 
   const loadAllRecipes = async () => {
     if (!user) return;
@@ -49,7 +51,7 @@ const RecipeHub: React.FC = () => {
 
         const mockMealsWithSource = MOCK_MEALS.map((meal) => ({
           id: meal.id,
-          name: meal.recipe_id === 'mock-1' ? 'Chicken Pasta' : 'Greek Salad',
+          name: `${meal.meal_type} on ${new Date(meal.date).toLocaleDateString()}`,
           category: 'Meal',
           area: '',
           instructions: meal.notes || '',
@@ -62,6 +64,7 @@ const RecipeHub: React.FC = () => {
           difficulty: 'Easy' as const,
           source: 'my-recipes' as RecipeSource,
           isSaved: true,
+          created_at: new Date().toISOString(), // Add missing created_at
         }));
         setWeeklyRecipes(mockMealsWithSource);
 
@@ -69,6 +72,7 @@ const RecipeHub: React.FC = () => {
           ...recipe,
           source: 'discovery' as RecipeSource,
           isSaved: false,
+          created_at: new Date().toISOString(), // Add missing created_at
         }));
         setRecipes(mockDiscoveryRecipes);
       } else {
@@ -85,8 +89,7 @@ const RecipeHub: React.FC = () => {
         const meals = await MealService.getAllMeals(user.id);
         const mealsWithSource = meals.map((meal) => ({
           id: meal.id,
-          name:
-            meal.recipe_name || `${meal.meal_type} on ${new Date(meal.date).toLocaleDateString()}`,
+          name: `${meal.meal_type} on ${new Date(meal.date).toLocaleDateString()}`,
           category: 'Meal',
           area: '',
           instructions: meal.notes || '',
@@ -99,21 +102,32 @@ const RecipeHub: React.FC = () => {
           difficulty: 'Easy' as const,
           source: 'my-recipes' as RecipeSource,
           isSaved: true,
+          created_at: new Date().toISOString(), // Add missing created_at
         }));
         setWeeklyRecipes(mealsWithSource);
 
-        // Load discovery recipes
+        // Load discovery recipes with pagination
         await loadDiscoveryRecipes();
+
+        // Load Recipes Plus
+        await loadPlusRecipes();
+
+        // Load For You recipes
+        await loadForYouRecipes();
       }
     } catch (error) {
-      console.error('Error loading recipes:', error);
+      logger.error('Error loading recipes:', error);
       toast.error('Failed to load recipes');
     } finally {
       setLoading(false);
     }
   };
 
-  const loadDiscoveryRecipes = async () => {
+  useEffect(() => {
+    loadAllRecipes();
+  }, [loadAllRecipes]);
+
+  const loadDiscoveryRecipes = async (append: boolean = false) => {
     if (IS_OFFLINE_MODE) {
       const mockDiscoveryRecipes = MOCK_RECIPES.map((recipe) => ({
         ...recipe,
@@ -125,41 +139,68 @@ const RecipeHub: React.FC = () => {
     }
 
     try {
-      // Load 5 random recipes instead of 1
-      const discoveryRecipes = await Promise.all([
-        MealDBService.getRandomRecipe(),
-        MealDBService.getRandomRecipe(),
-        MealDBService.getRandomRecipe(),
-        MealDBService.getRandomRecipe(),
-        MealDBService.getRandomRecipe(),
-      ]);
+      const discoveryRecipes = await UserRecipeService.getRecipesWithPagination(
+        24,
+        append ? lastCreatedAt : undefined,
+      );
 
-      // Filter out null results and flatten
-      const validRecipes = discoveryRecipes
-        .filter((recipe) => recipe !== null)
-        .flatMap((recipe) => {
-          if (Array.isArray(recipe)) {
-            return recipe.map((r: Recipe) => ({
-              ...r,
-              source: 'discovery' as RecipeSource,
-              isSaved: false,
-            }));
-          } else if (recipe) {
-            return [
-              {
-                ...(recipe as Recipe),
-                source: 'discovery' as RecipeSource,
-                isSaved: false,
-              },
-            ];
-          }
-          return [];
-        });
+      const recipesWithSource = discoveryRecipes.map((recipe) => ({
+        ...recipe,
+        source: 'discovery' as RecipeSource,
+        isSaved: false,
+      }));
 
-      setRecipes(validRecipes);
+      if (append) {
+        setRecipes((prev) => [...prev, ...recipesWithSource]);
+      } else {
+        setRecipes(recipesWithSource);
+      }
+
+      // Update pagination state
+      if (discoveryRecipes.length > 0) {
+        const lastRecipe = discoveryRecipes[discoveryRecipes.length - 1];
+        if (lastRecipe.created_at) {
+          setLastCreatedAt(lastRecipe.created_at);
+        }
+        setHasMore(discoveryRecipes.length === 24);
+      } else {
+        setHasMore(false);
+      }
     } catch (error) {
-      console.error('Error loading discovery recipes:', error);
+      logger.error('Error loading discovery recipes:', error);
       toast.error('Failed to load discovery recipes');
+    }
+  };
+
+  const loadPlusRecipes = async () => {
+    if (IS_OFFLINE_MODE) return;
+
+    try {
+      const plusRecipesData = await UserRecipeService.getRecipesPlus();
+      const plusWithSource = plusRecipesData.map((recipe) => ({
+        ...recipe,
+        source: 'plus' as RecipeSource,
+        isSaved: false,
+      }));
+      setPlusRecipes(plusWithSource);
+    } catch (error) {
+      logger.error('Error loading plus recipes:', error);
+    }
+  };
+
+  const loadForYouRecipes = async () => {
+    if (IS_OFFLINE_MODE) return;
+
+    try {
+      const forYouRecipesData = await UserRecipeService.getForYouRecipes();
+      const forYouWithSource = forYouRecipesData.map((recipe) => ({
+        ...recipe,
+        source: 'for-you' as RecipeSource,
+        isSaved: false,
+      }));
+      setForYouRecipes(forYouWithSource);
+    } catch (error) {
+      logger.error('Error loading for you recipes:', error);
     }
   };
 
@@ -182,7 +223,7 @@ const RecipeHub: React.FC = () => {
         toast.error('Failed to save recipe');
       }
     } catch (error) {
-      console.error('Error saving recipe:', error);
+      logger.error('Error saving recipe:', error);
       toast.error('Failed to save recipe');
     }
   };
@@ -206,7 +247,7 @@ const RecipeHub: React.FC = () => {
         toast.error('Failed to remove recipe');
       }
     } catch (error) {
-      console.error('Error removing recipe:', error);
+      logger.error('Error removing recipe:', error);
       toast.error('Failed to remove recipe');
     }
   };
@@ -216,51 +257,35 @@ const RecipeHub: React.FC = () => {
     toast.success('Added to weekly plan! (Coming soon)');
   };
 
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) {
-      await loadDiscoveryRecipes();
-      return;
-    }
-
-    if (IS_OFFLINE_MODE) {
-      // Filter mock data in offline mode
-      const filtered = MOCK_RECIPES.filter(
-        (recipe) =>
-          recipe.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (recipe.category && recipe.category.toLowerCase().includes(searchQuery.toLowerCase()))
-      );
-      const filteredWithSource = filtered.map((recipe) => ({
-        ...recipe,
-        source: 'discovery' as RecipeSource,
-        isSaved: false,
-      }));
-      setRecipes(filteredWithSource);
-      return;
-    }
-
-    try {
-      const searchResults = await MealDBService.searchRecipes(searchQuery);
-      if (searchResults) {
-        const searchWithSource = searchResults.map((recipe) => ({
-          ...recipe,
-          source: 'discovery' as RecipeSource,
-          isSaved: false,
-        }));
-        setRecipes(searchWithSource);
-      }
-    } catch (error) {
-      console.error('Error searching recipes:', error);
-      toast.error('Failed to search recipes');
+  const handleLoadMore = async () => {
+    if (hasMore && !loading) {
+      await loadDiscoveryRecipes(true);
     }
   };
 
+  const handleFiltersChange = () => {
+    // Reset pagination when filters change
+    setLastCreatedAt(undefined);
+    setHasMore(true);
+    // Reload recipes with new filters
+    loadDiscoveryRecipes();
+  };
+
   // Combine all recipes based on filter
-  const allRecipes = [...savedRecipes, ...weeklyRecipes, ...recipes];
+  const allRecipes = [
+    ...savedRecipes,
+    ...weeklyRecipes,
+    ...recipes,
+    ...plusRecipes,
+    ...forYouRecipes,
+  ];
   const filteredRecipes = allRecipes.filter((recipe) => {
     if (activeFilter === 'all') return true;
     if (activeFilter === 'saved') return recipe.source === 'saved';
     if (activeFilter === 'my-recipes') return recipe.source === 'my-recipes';
     if (activeFilter === 'discovery') return recipe.source === 'discovery';
+    if (activeFilter === 'plus') return recipe.source === 'plus';
+    if (activeFilter === 'for-you') return recipe.source === 'for-you';
     return true;
   });
 
@@ -269,6 +294,8 @@ const RecipeHub: React.FC = () => {
     if (filter === 'saved') return savedRecipes.length;
     if (filter === 'my-recipes') return weeklyRecipes.length;
     if (filter === 'discovery') return recipes.length;
+    if (filter === 'plus') return plusRecipes.length;
+    if (filter === 'for-you') return forYouRecipes.length;
     return 0;
   };
 
@@ -293,30 +320,8 @@ const RecipeHub: React.FC = () => {
           <p className="text-soft-taupe">Discover, save, and organize your favorite recipes</p>
         </header>
 
-        {/* Search Bar */}
-        <div className="mb-6">
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSearch();
-            }}
-            className="relative"
-          >
-            <input
-              type="text"
-              placeholder="Search recipes..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full p-4 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-coral-blush focus:border-transparent"
-            />
-            <button
-              type="submit"
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-coral-blush hover:text-opacity-80"
-            >
-              <Search className="w-5 h-5" />
-            </button>
-          </form>
-        </div>
+        {/* Filter Bar */}
+        <FilterBar onFiltersChange={handleFiltersChange} />
 
         {/* Filter Buttons */}
         <div className="mb-6">
@@ -360,15 +365,27 @@ const RecipeHub: React.FC = () => {
             </button>
 
             <button
-              onClick={() => setActiveFilter('discovery')}
+              onClick={() => setActiveFilter('plus')}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
-                activeFilter === 'discovery'
+                activeFilter === 'plus'
                   ? 'bg-coral-blush text-white'
                   : 'bg-white text-rich-charcoal border border-gray-200'
               }`}
             >
-              <Star className="w-4 h-4" />
-              <span className="text-sm font-medium">Discover ({getFilterCount('discovery')})</span>
+              <Plus className="w-4 h-4" />
+              <span className="text-sm font-medium">Plus ({getFilterCount('plus')})</span>
+            </button>
+
+            <button
+              onClick={() => setActiveFilter('for-you')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
+                activeFilter === 'for-you'
+                  ? 'bg-coral-blush text-white'
+                  : 'bg-white text-rich-charcoal border border-gray-200'
+              }`}
+            >
+              <Sparkles className="w-4 h-4" />
+              <span className="text-sm font-medium">For You ({getFilterCount('for-you')})</span>
             </button>
           </div>
         </div>
@@ -393,7 +410,7 @@ const RecipeHub: React.FC = () => {
             </p>
             {!searchQuery && (
               <button
-                onClick={loadDiscoveryRecipes}
+                onClick={() => loadDiscoveryRecipes()}
                 className="bg-coral-blush text-white px-6 py-2 rounded-lg hover:bg-opacity-90 transition-colors"
               >
                 Discover Recipes
@@ -441,15 +458,35 @@ const RecipeHub: React.FC = () => {
           </div>
         )}
 
-        {/* Refresh Button for All and Discovery */}
-        {(activeFilter === 'all' || activeFilter === 'discovery') && !loading && (
+        {/* Load More Button for All and Discovery */}
+        {(activeFilter === 'all' || activeFilter === 'discovery') && !loading && hasMore && (
           <div className="mt-6 text-center">
             <button
-              onClick={loadDiscoveryRecipes}
+              onClick={() => handleLoadMore()}
               className="flex items-center gap-2 mx-auto bg-coral-blush text-white px-6 py-3 rounded-lg hover:bg-opacity-90 transition-colors font-medium"
             >
               <RefreshCw className="w-4 h-4" />
               <span>Load More Recipes</span>
+            </button>
+          </div>
+        )}
+
+        {/* Refresh Button for Plus and For You */}
+        {(activeFilter === 'plus' || activeFilter === 'for-you') && !loading && (
+          <div className="mt-6 text-center">
+            <button
+              onClick={() => {
+                if (activeFilter === 'plus') {
+                  loadPlusRecipes();
+                }
+                if (activeFilter === 'for-you') {
+                  loadForYouRecipes();
+                }
+              }}
+              className="flex items-center gap-2 mx-auto bg-coral-blush text-white px-6 py-3 rounded-lg hover:bg-opacity-90 transition-colors font-medium"
+            >
+              <RefreshCw className="w-4 h-4" />
+              <span>Refresh {activeFilter === 'plus' ? 'Plus' : 'For You'} Recipes</span>
             </button>
           </div>
         )}

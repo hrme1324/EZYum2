@@ -1,11 +1,12 @@
 import { motion } from 'framer-motion';
-import { CheckCircle, Clock, Plus, Trash2, Utensils, XCircle } from 'lucide-react';
+import { Check, Clock, Edit3, Trash2, X } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
+import { RecipeService } from '../api/aiService';
 import { MealService } from '../api/mealService';
-import { RecipeService } from '../api/recipeService';
-import { Recipe } from '../components/RecipeCard';
 import { useAuthStore } from '../state/authStore';
+import { Recipe } from '../types';
+import { logger } from '../utils/logger';
 
 interface Meal {
   id: string;
@@ -33,13 +34,6 @@ const MyMeals: React.FC = () => {
     status: 'planned' as const,
   });
 
-  useEffect(() => {
-    if (user) {
-      loadMeals();
-      loadRecipes();
-    }
-  }, [user]);
-
   const loadMeals = async () => {
     if (!user) return;
 
@@ -48,7 +42,7 @@ const MyMeals: React.FC = () => {
       const allMeals = await MealService.getAllMeals(user.id);
       setMeals(allMeals || []);
     } catch (error) {
-      console.error('Error loading meals:', error);
+      logger.error('Error loading meals:', error);
       toast.error('Failed to load meals');
     } finally {
       setLoading(false);
@@ -59,12 +53,24 @@ const MyMeals: React.FC = () => {
     if (!user) return;
 
     try {
-      const userRecipes = await RecipeService.getUserRecipes();
-      setRecipes(userRecipes || []);
+      const recipesData = await RecipeService.getRandomRecipe();
+      if (recipesData) {
+        const recipes = Array.isArray(recipesData) ? recipesData : [recipesData];
+        setRecipes(recipes.filter(Boolean));
+      }
     } catch (error) {
-      console.error('Error loading recipes:', error);
+      logger.error('Error loading recipes:', error);
+      toast.error('Failed to load recipes');
     }
   };
+
+  // Load data when user changes
+  useEffect(() => {
+    if (user) {
+      loadMeals();
+      loadRecipes();
+    }
+  }, [user, loadMeals, loadRecipes]);
 
   const handleAddMeal = async () => {
     if (!user) return;
@@ -93,14 +99,14 @@ const MyMeals: React.FC = () => {
         toast.error('Failed to add meal');
       }
     } catch (error) {
-      console.error('Error adding meal:', error);
+      logger.error('Error adding meal:', error);
       toast.error('Failed to add meal');
     }
   };
 
   const handleUpdateMealStatus = async (
     mealId: string,
-    status: 'planned' | 'cooked' | 'skipped'
+    status: 'planned' | 'cooked' | 'skipped',
   ) => {
     if (!user) return;
 
@@ -113,7 +119,7 @@ const MyMeals: React.FC = () => {
         toast.error('Failed to update meal status');
       }
     } catch (error) {
-      console.error('Error updating meal status:', error);
+      logger.error('Error updating meal status:', error);
       toast.error('Failed to update meal status');
     }
   };
@@ -130,7 +136,7 @@ const MyMeals: React.FC = () => {
         toast.error('Failed to delete meal');
       }
     } catch (error) {
-      console.error('Error deleting meal:', error);
+      logger.error('Error deleting meal:', error);
       toast.error('Failed to delete meal');
     }
   };
@@ -164,9 +170,9 @@ const MyMeals: React.FC = () => {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'cooked':
-        return <CheckCircle className="w-4 h-4" />;
+        return <Check className="w-4 h-4" />;
       case 'skipped':
-        return <XCircle className="w-4 h-4" />;
+        return <X className="w-4 h-4" />;
       default:
         return <Clock className="w-4 h-4" />;
     }
@@ -208,7 +214,7 @@ const MyMeals: React.FC = () => {
             onClick={() => setShowAddMeal(true)}
             className="w-full bg-coral-blush text-white py-3 px-4 rounded-xl hover:bg-opacity-90 transition-colors font-medium flex items-center justify-center gap-2"
           >
-            <Plus className="w-5 h-5" />
+            <Edit3 className="w-5 h-5" />
             Add New Meal
           </button>
         </div>
@@ -316,7 +322,7 @@ const MyMeals: React.FC = () => {
         {/* Empty State */}
         {!loading && meals.length === 0 && (
           <div className="text-center py-12">
-            <Utensils className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <Edit3 className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-rich-charcoal mb-2">No meals yet</h3>
             <p className="text-soft-taupe mb-4">Start adding meals to track your eating habits</p>
             <button

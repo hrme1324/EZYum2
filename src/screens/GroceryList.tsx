@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { GroceryService } from '../api/groceryService';
 import { useAuthStore } from '../state/authStore';
 import { GroceryItem } from '../types';
+import { logger } from '../utils/logger';
 
 const GroceryList: React.FC = () => {
   const { user } = useAuthStore();
@@ -28,53 +29,17 @@ const GroceryList: React.FC = () => {
     { id: 'other', name: 'Other', emoji: '📦', color: 'bg-gray-100 text-gray-600' },
   ];
 
-  // Load grocery list on component mount
-  useEffect(() => {
-    if (user) {
-      loadGroceryList();
-    }
-  }, [user]);
-
   const loadGroceryList = async () => {
     if (!user) return;
 
     try {
       setLoading(true);
-      const items = await GroceryService.getGroceryList(user.id);
-
-      // If no items exist, create default items
-      if (items.length === 0) {
-        const defaultItems: GroceryItem[] = [
-          { name: 'Chicken Breast', quantity: 2, unit: 'lbs', category: 'protein', checked: false },
-          { name: 'Broccoli', quantity: 1, unit: 'head', category: 'vegetables', checked: true },
-          { name: 'Brown Rice', quantity: 1, unit: 'bag', category: 'grains', checked: false },
-          {
-            name: 'Olive Oil',
-            quantity: 1,
-            unit: 'bottle',
-            category: 'condiments',
-            checked: false,
-          },
-          { name: 'Tomatoes', quantity: 6, unit: 'pieces', category: 'vegetables', checked: false },
-          { name: 'Eggs', quantity: 12, unit: 'pieces', category: 'protein', checked: true },
-          { name: 'Milk', quantity: 1, unit: 'gallon', category: 'dairy', checked: false },
-        ];
-
-        // Save default items to database
-        const success = await GroceryService.saveGroceryList(user.id, defaultItems);
-        if (success) {
-          setGroceryItems(defaultItems);
-          toast.success('Default grocery list created!');
-        } else {
-          // If saving fails, still show the items locally
-          setGroceryItems(defaultItems);
-          toast.error('Failed to save to database, but items are available locally');
-        }
-      } else {
-        setGroceryItems(items);
+      const groceryList = await GroceryService.getGroceryList(user.id);
+      if (groceryList) {
+        setGroceryItems(groceryList);
       }
     } catch (error) {
-      console.error('Error loading grocery list:', error);
+      logger.error('Error loading grocery list:', error);
       toast.error('Failed to load grocery list');
       // Set empty array to prevent infinite loading
       setGroceryItems([]);
@@ -82,6 +47,12 @@ const GroceryList: React.FC = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (user) {
+      loadGroceryList();
+    }
+  }, [user, loadGroceryList]);
 
   const toggleItem = async (index: number) => {
     if (!user) return;
@@ -96,7 +67,7 @@ const GroceryList: React.FC = () => {
         toast.error('Failed to update item');
       }
     } catch (error) {
-      console.error('Error toggling item:', error);
+      logger.error('Error toggling item:', error);
       toast.error('Failed to update item');
     }
   };
@@ -114,7 +85,7 @@ const GroceryList: React.FC = () => {
         toast.error('Failed to remove item');
       }
     } catch (error) {
-      console.error('Error deleting item:', error);
+      logger.error('Error deleting item:', error);
       toast.error('Failed to remove item');
     }
   };
@@ -134,7 +105,7 @@ const GroceryList: React.FC = () => {
         toast.error('Failed to add item');
       }
     } catch (error) {
-      console.error('Error adding item:', error);
+      logger.error('Error adding item:', error);
       toast.error('Failed to add item');
     }
   };
@@ -152,7 +123,7 @@ const GroceryList: React.FC = () => {
         toast.error('Failed to clear completed items');
       }
     } catch (error) {
-      console.error('Error clearing completed items:', error);
+      logger.error('Error clearing completed items:', error);
       toast.error('Failed to clear completed items');
     }
   };
@@ -171,7 +142,7 @@ const GroceryList: React.FC = () => {
       acc[item.category].push(item);
       return acc;
     },
-    {} as Record<string, GroceryItem[]>
+    {} as Record<string, GroceryItem[]>,
   );
 
   const checkedCount = groceryItems.filter((item) => item.checked).length;

@@ -1,4 +1,5 @@
 import { BarcodeProduct } from '../types';
+import { logger } from '../utils/logger';
 
 // Open Food Facts API endpoint
 const OPEN_FOOD_FACTS_API = 'https://world.openfoodfacts.org/api/v0/product';
@@ -45,14 +46,14 @@ export class BarcodeService {
     try {
       // Check cache first
       if (this.cache.has(barcode)) {
-        console.log('Returning cached product:', barcode);
+        logger.log('Returning cached product:', barcode);
         return this.cache.get(barcode)!;
       }
 
       // Check fallback products first (for testing)
       const fallbackProduct = FALLBACK_PRODUCTS[barcode];
       if (fallbackProduct) {
-        console.log('Found fallback product:', fallbackProduct.name);
+        logger.log('Found fallback product:', fallbackProduct.name);
         this.cache.set(barcode, fallbackProduct);
         return fallbackProduct;
       }
@@ -60,20 +61,20 @@ export class BarcodeService {
       // Try Open Food Facts API
       const product = await this.fetchFromOpenFoodFacts(barcode);
       if (product) {
-        console.log('Found product from API:', product.name);
+        logger.log('Found product from API:', product.name);
         this.cache.set(barcode, product);
         return product;
       }
 
-      console.log('No product found for barcode:', barcode);
+      logger.log('No product found for barcode:', barcode);
       return null;
     } catch (error) {
-      console.error('Barcode scanning error:', error);
+      logger.error('Barcode scanning error:', error);
 
       // Return fallback product if available
       const fallbackProduct = FALLBACK_PRODUCTS[barcode];
       if (fallbackProduct) {
-        console.log('Returning fallback product after error:', fallbackProduct.name);
+        logger.log('Returning fallback product after error:', fallbackProduct.name);
         return fallbackProduct;
       }
 
@@ -90,7 +91,7 @@ export class BarcodeService {
 
       if (!response.ok) {
         if (response.status === 429) {
-          console.warn('Open Food Facts API rate limited');
+          logger.warn('Open Food Facts API rate limited');
           return null;
         }
         throw new Error(`HTTP ${response.status}`);
@@ -119,7 +120,7 @@ export class BarcodeService {
         },
       };
     } catch (error) {
-      console.error('Open Food Facts API error:', error);
+      logger.error('Open Food Facts API error:', error);
       return null;
     }
   }

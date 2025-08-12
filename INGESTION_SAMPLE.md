@@ -2,13 +2,13 @@
 
 Try end-to-end ingest locally:
 
-1) Generate NDJSON from sample
+1. Generate NDJSON from sample
 
 ```
 npm run tools:ingest:usda tools/sample-usda.json
 ```
 
-2) Post to backend
+2. Post to backend
 
 ```
 curl -X POST \

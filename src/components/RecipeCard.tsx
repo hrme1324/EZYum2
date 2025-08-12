@@ -1,22 +1,8 @@
 import { motion } from 'framer-motion';
 import { Clock, ExternalLink, Play, X } from 'lucide-react';
 import React, { useState } from 'react';
-
-export interface Recipe {
-  id: string;
-  name: string;
-  category?: string;
-  area?: string;
-  instructions?: string;
-  image?: string;
-  tags?: string[];
-  ingredients?: Array<{ name: string; measure: string }>;
-  videoUrl?: string;
-  websiteUrl?: string;
-  cookingTime?: string;
-  difficulty?: 'Easy' | 'Medium' | 'Hard';
-  license?: string;
-}
+import { Recipe } from '../types';
+import { normalizeIngredients } from '../utils/format';
 
 interface QuickAction {
   label: string;
@@ -27,8 +13,8 @@ interface QuickAction {
 
 interface RecipeCardProps {
   recipe: Recipe;
-  onSave?: (recipe: Recipe) => void;
-  onDelete?: (recipeId: string) => void;
+  onSave?: () => void;
+  onDelete?: () => void;
   showActions?: boolean;
   quickActions?: QuickAction[];
 }
@@ -42,6 +28,9 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
 }) => {
   const [showDetails, setShowDetails] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
+
+  // Normalize ingredients for safe rendering
+  const normalizedIngredients = normalizeIngredients(recipe.ingredients);
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -59,7 +48,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
   const extractVideoId = (url?: string) => {
     if (!url) return null;
     const match = url.match(
-      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
     );
     return match ? match[1] : null;
   };
@@ -141,11 +130,11 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
         )}
 
         {/* Ingredients Preview */}
-        {recipe.ingredients && recipe.ingredients.length > 0 && (
+        {normalizedIngredients.length > 0 && (
           <div className="mb-3">
             <h4 className="text-sm font-medium text-rich-charcoal mb-2">Ingredients</h4>
             <div className="flex flex-wrap gap-1">
-              {recipe.ingredients.slice(0, 5).map((ingredient, index) => (
+              {normalizedIngredients.slice(0, 5).map((ingredient, index) => (
                 <span
                   key={index}
                   className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full"
@@ -153,9 +142,9 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
                   {ingredient.name}
                 </span>
               ))}
-              {recipe.ingredients.length > 5 && (
+              {normalizedIngredients.length > 5 && (
                 <span className="text-xs text-soft-taupe">
-                  +{recipe.ingredients.length - 5} more
+                  +{normalizedIngredients.length - 5} more
                 </span>
               )}
             </div>
@@ -173,7 +162,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
             </button>
             {onSave && (
               <button
-                onClick={() => onSave(recipe)}
+                onClick={() => onSave()}
                 className="bg-sage-leaf text-white py-2 px-4 rounded-lg hover:bg-opacity-90 transition-colors text-sm font-medium"
               >
                 Save Recipe
@@ -181,7 +170,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
             )}
             {onDelete && (
               <button
-                onClick={() => onDelete(recipe.id)}
+                onClick={() => onDelete()}
                 className="bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-opacity-90 transition-colors text-sm font-medium"
               >
                 Delete
@@ -253,11 +242,11 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
             </div>
           )}
 
-          {recipe.ingredients && recipe.ingredients.length > 0 && (
+          {normalizedIngredients.length > 0 && (
             <div>
               <h4 className="font-medium text-rich-charcoal mb-2">Ingredients</h4>
               <div className="space-y-1">
-                {recipe.ingredients.map((ingredient, index) => (
+                {normalizedIngredients.map((ingredient, index) => (
                   <div key={index} className="flex justify-between text-sm">
                     <span className="text-rich-charcoal">{ingredient.name}</span>
                     <span className="text-soft-taupe">{ingredient.measure}</span>
@@ -274,7 +263,12 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
                 <>
                   {' '}
                   • Source:{' '}
-                  <a href={(recipe as any).websiteUrl} target="_blank" rel="noopener noreferrer" className="underline">
+                  <a
+                    href={(recipe as any).websiteUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline"
+                  >
                     link
                   </a>
                 </>

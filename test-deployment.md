@@ -3,6 +3,7 @@
 ## 🔧 What We Fixed:
 
 1. **Added Node.js Engine Specification:**
+
    ```json
    "engines": {
      "node": "18.x"
@@ -10,6 +11,7 @@
    ```
 
 2. **Switched to `builds` Approach:**
+
    ```json
    {
      "version": 2,
@@ -35,24 +37,29 @@
 ## 🧪 Test Steps:
 
 ### 1. Wait for Deployment (2-3 minutes)
+
 Check Vercel dashboard for deployment status.
 
 ### 2. Test Frontend
+
 - Go to `https://ezyum.com`
 - Should load without errors
 - Check browser console for any issues
 
 ### 3. Test API Endpoints
+
 - `https://ezyum.com/api/health` - Should return `{"status":"OK"}`
 - `https://ezyum.com/api/recipes/random` - Should return a random recipe
 
 ### 4. Test Authentication
+
 - Try signing in with Google
 - Should redirect to `https://ezyum.com` (not localhost)
 
 ## 🔍 Debug Info to Check:
 
 In browser console on `ezyum.com`, look for:
+
 - `🔧 API Configuration:` - Should show `BACKEND_URL: "/api"`
 - `🔍 Auth URL Detection:` - Should show correct domain detection
 
