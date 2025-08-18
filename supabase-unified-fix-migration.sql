@@ -171,7 +171,7 @@ CREATE TRIGGER saved_set_updated_at
 CREATE TABLE IF NOT EXISTS public.planner_entries (
   id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id      uuid REFERENCES auth.users(id) ON DELETE CASCADE,
-  plan_date    date NOT NULL,
+  date         date NOT NULL,  -- Use 'date' instead of 'plan_date' to match existing structure
   slot         text NOT NULL CHECK (slot IN ('breakfast', 'lunch', 'dinner', 'snack')),
   recipe_id    uuid REFERENCES public.recipes(id) ON DELETE SET NULL,
   notes        text,
@@ -180,9 +180,14 @@ CREATE TABLE IF NOT EXISTS public.planner_entries (
   updated_at   timestamptz DEFAULT now()
 );
 
+-- Add missing columns if they don't exist (for existing tables)
+ALTER TABLE public.planner_entries ADD COLUMN IF NOT EXISTS name_cached text;
+ALTER TABLE public.planner_entries ADD COLUMN IF NOT EXISTS slot text;
+ALTER TABLE public.planner_entries ADD COLUMN IF NOT EXISTS updated_at timestamptz DEFAULT now();
+
 -- Performance index
 CREATE INDEX IF NOT EXISTS idx_planner_user_date_slot
-  ON public.planner_entries(user_id, plan_date, slot);
+  ON public.planner_entries(user_id, date, slot);
 
 -- RLS
 ALTER TABLE public.planner_entries ENABLE ROW LEVEL SECURITY;

@@ -114,7 +114,8 @@ export class RecommendationService {
 
     // Use session-based offset for variety
     const sessionOffset = this.getSessionOffset(context.currentSession);
-    query = query.range(sessionOffset, (sessionOffset + (count * 3)) - 1);
+    const endOffset = sessionOffset + (count * 3) - 1;
+    query = query.range(sessionOffset, endOffset);
 
     const { data: recipes, error } = await query;
 
@@ -308,7 +309,7 @@ export class RecommendationService {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
-      hash = ((hash * 31) + char) >>> 0; // Use unsigned right shift instead of bitwise AND
+      hash = ((hash * 31) + char) % 2147483647; // Use modulo instead of bitwise operations
     }
     return Math.abs(hash);
   }

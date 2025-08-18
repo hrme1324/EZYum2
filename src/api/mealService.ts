@@ -115,7 +115,7 @@ export class MealService {
         .from('planner_entries')
         .insert({
           user_id: user.id,
-          plan_date: opts.date,
+          date: opts.date,
           slot: opts.slot,
           recipe_id: opts.recipeId,
           notes: opts.notes ?? null,
@@ -126,7 +126,7 @@ export class MealService {
       if (error) {
         console.error('[planner insert error]', error, {
           user_id: user.id,
-          plan_date: opts.date,
+          date: opts.date,
           slot: opts.slot,
           recipe_id: opts.recipeId,
           name_cached: recipeName

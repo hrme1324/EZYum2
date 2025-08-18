@@ -4,7 +4,7 @@ import { supabase } from './supabase';
 export interface PlannerEntry {
   id: string;
   user_id: string;
-  plan_date: string;
+  date: string;
   meal_slot: string;
   recipe_id: string;
   source: 'manual' | 'max_streak' | 'suggested';
@@ -44,7 +44,7 @@ export class PlannerService {
           )
         `)
         .eq('user_id', userId)
-        .eq('plan_date', date)
+        .eq('date', date)
         .order('meal_slot');
 
       if (error) {
@@ -78,9 +78,9 @@ export class PlannerService {
           )
         `)
         .eq('user_id', userId)
-        .gte('plan_date', startDate)
-        .lte('plan_date', endDate)
-        .order('plan_date')
+        .gte('date', startDate)
+        .lte('date', endDate)
+        .order('date')
         .order('meal_slot');
 
       if (error) {
@@ -126,14 +126,14 @@ export class PlannerService {
         .from('planner_entries')
         .upsert({
           user_id: userId,
-          plan_date: planDate,
+          date: planDate,
           meal_slot: mealSlot,
           recipe_id: recipeId,
           source,
           notes,
           name_cached: recipeName, // Set name_cached for instant UI
         }, {
-          onConflict: 'user_id,plan_date,meal_slot'
+          onConflict: 'user_id,date,meal_slot'
         })
         .select()
         .single();
@@ -252,15 +252,15 @@ export class PlannerService {
         .from('planner_entries')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', userId)
-        .gte('plan_date', startOfWeek.toISOString().split('T')[0])
-        .lte('plan_date', endOfWeek.toISOString().split('T')[0]);
+        .gte('date', startOfWeek.toISOString().split('T')[0])
+        .lte('date', endOfWeek.toISOString().split('T')[0]);
 
       // Get planned today
       const { count: plannedToday } = await supabase
         .from('planner_entries')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', userId)
-        .eq('plan_date', today);
+        .eq('date', today);
 
       return {
         totalPlanned: totalPlanned || 0,
