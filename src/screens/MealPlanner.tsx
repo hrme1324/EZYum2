@@ -80,7 +80,13 @@ const MealPlanner: React.FC = () => {
         status: 'planned' as const,
       };
 
-      const success = await MealService.addMeal(user.id, mealData);
+      const success = await MealService.scheduleRecipe({
+        recipeId: mealData.recipe_id || '',
+        recipeName: mealData.recipe_name || '',
+        date: mealData.date,
+        slot: mealData.meal_type,
+        notes: mealData.notes
+      });
       if (success) {
         await loadMeals();
         toast.success(`${draggedRecipe.name} added to ${mealType}`);
@@ -217,7 +223,7 @@ const MealPlanner: React.FC = () => {
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <h4 className="font-medium text-rich-charcoal">{meal.recipe_name}</h4>
+                        <h4 className="font-medium text-rich-charcoal">{meal.name_cached || 'Unnamed Meal'}</h4>
                         {meal.notes && <p className="text-sm text-soft-taupe mt-1">{meal.notes}</p>}
                       </div>
                       <button

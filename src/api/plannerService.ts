@@ -9,12 +9,13 @@ export interface PlannerEntry {
   recipe_id: string;
   source: 'manual' | 'max_streak' | 'suggested';
   notes?: string;
+  name_cached?: string;  // Cached name for instant UI display
   created_at: string;
   updated_at: string;
 }
 
 export interface PlannerEntryWithRecipe extends PlannerEntry {
-  recipe: {
+  recipe?: {
     id: string;
     name: string;
     image?: string;
@@ -101,11 +102,26 @@ export class PlannerService {
     userId: string,
     planDate: string,
     mealSlot: string,
-    recipeId: string,
-    source: 'manual' | 'max_streak' | 'suggested' = 'manual',
-    notes?: string
+    options: {
+      recipeId: string;
+      source?: 'manual' | 'max_streak' | 'suggested';
+      notes?: string;
+    }
   ): Promise<PlannerEntry> {
     try {
+      const { recipeId, source = 'manual', notes } = options;
+
+      // First get the recipe name for name_cached
+      let recipeName = '';
+      if (recipeId) {
+        const { data: recipeData } = await supabase
+          .from('recipes')
+          .select('name')
+          .eq('id', recipeId)
+          .single();
+        recipeName = recipeData?.name || '';
+      }
+
       const { data, error } = await supabase
         .from('planner_entries')
         .upsert({
@@ -115,6 +131,7 @@ export class PlannerService {
           recipe_id: recipeId,
           source,
           notes,
+          name_cached: recipeName, // Set name_cached for instant UI
         }, {
           onConflict: 'user_id,plan_date,meal_slot'
         })

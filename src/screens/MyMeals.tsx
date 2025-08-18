@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Check, Clock, Edit3, Trash2, X } from 'lucide-react';
+import { Edit3, Trash2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { RecipeService } from '../api/aiService';
@@ -14,7 +14,7 @@ interface Meal {
   date: string;
   meal_type: string;
   recipe_id?: string;
-  status: 'planned' | 'cooked' | 'skipped';
+  name_cached?: string;
   notes?: string;
   created_at: string;
   recipe?: Recipe;
@@ -31,7 +31,6 @@ const MyMeals: React.FC = () => {
     meal_type: 'breakfast' as 'breakfast' | 'lunch' | 'dinner' | 'snack',
     recipe_id: '',
     notes: '',
-    status: 'planned' as const,
   });
 
   const loadMeals = async () => {
@@ -76,12 +75,12 @@ const MyMeals: React.FC = () => {
     if (!user) return;
 
     try {
-      const success = await MealService.addMeal(user.id, {
+      const success = await MealService.scheduleRecipe({
+        recipeId: newMeal.recipe_id || '',
+        recipeName: '', // Will be filled by the service
         date: newMeal.date,
-        meal_type: newMeal.meal_type,
-        recipe_id: newMeal.recipe_id || undefined,
+        slot: newMeal.meal_type,
         notes: newMeal.notes,
-        status: newMeal.status,
       });
 
       if (success) {
@@ -92,7 +91,6 @@ const MyMeals: React.FC = () => {
           meal_type: 'breakfast',
           recipe_id: '',
           notes: '',
-          status: 'planned',
         });
         toast.success('Meal added successfully!');
       } else {
@@ -104,25 +102,7 @@ const MyMeals: React.FC = () => {
     }
   };
 
-  const handleUpdateMealStatus = async (
-    mealId: string,
-    status: 'planned' | 'cooked' | 'skipped',
-  ) => {
-    if (!user) return;
 
-    try {
-      const success = await MealService.updateMeal(user.id, mealId, { status });
-      if (success) {
-        await loadMeals();
-        toast.success('Meal status updated!');
-      } else {
-        toast.error('Failed to update meal status');
-      }
-    } catch (error) {
-      logger.error('Error updating meal status:', error);
-      toast.error('Failed to update meal status');
-    }
-  };
 
   const handleDeleteMeal = async (mealId: string) => {
     if (!user) return;
@@ -156,27 +136,7 @@ const MyMeals: React.FC = () => {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'cooked':
-        return 'text-green-600 bg-green-100';
-      case 'skipped':
-        return 'text-red-600 bg-red-100';
-      default:
-        return 'text-blue-600 bg-blue-100';
-    }
-  };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'cooked':
-        return <Check className="w-4 h-4" />;
-      case 'skipped':
-        return <X className="w-4 h-4" />;
-      default:
-        return <Clock className="w-4 h-4" />;
-    }
-  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -355,14 +315,7 @@ const MyMeals: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${getStatusColor(meal.status)}`}
-                    >
-                      {getStatusIcon(meal.status)}
-                      {meal.status}
-                    </span>
-                  </div>
+
                 </div>
 
                 {meal.recipe && (
@@ -380,30 +333,11 @@ const MyMeals: React.FC = () => {
 
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => handleUpdateMealStatus(meal.id, 'cooked')}
-                    className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-colors ${
-                      meal.status === 'cooked'
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-gray-100 text-gray-600 hover:bg-green-100 hover:text-green-700'
-                    }`}
-                  >
-                    Mark Cooked
-                  </button>
-                  <button
-                    onClick={() => handleUpdateMealStatus(meal.id, 'skipped')}
-                    className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-colors ${
-                      meal.status === 'skipped'
-                        ? 'bg-red-100 text-red-700'
-                        : 'bg-gray-100 text-gray-600 hover:bg-red-100 hover:text-red-700'
-                    }`}
-                  >
-                    Mark Skipped
-                  </button>
-                  <button
                     onClick={() => handleDeleteMeal(meal.id)}
-                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                    className="flex-1 p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
+                    Delete
                   </button>
                 </div>
               </motion.div>

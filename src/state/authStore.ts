@@ -6,15 +6,18 @@ import { logger } from '../utils/logger';
 interface AuthState {
   user: User | null;
   isLoading: boolean;
+  authReady: boolean;  // Critical: deterministic auth state
   _subscription?: Subscription;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
-  checkAuth: () => Promise<void>;
+  initAuth: () => Promise<void>;  // Renamed for clarity
+  unsubscribeAuth: () => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   isLoading: true,
+  authReady: false,  // Critical: starts false, becomes true deterministically
 
   signInWithGoogle: async () => {
     try {
@@ -49,27 +52,45 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  checkAuth: async () => {
+  initAuth: async () => {
+    logger.debug('[auth] Starting auth initialization');
+    set({ isLoading: true, authReady: false });
+
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      set({ user: session?.user ?? null, isLoading: false });
-
-      const {
-        data: { subscription },
-      } = supabase.auth.onAuthStateChange(
-        async (event: AuthChangeEvent, session: Session | null) => {
-          logger.log('Auth state changed:', event, session?.user?.id);
-          set({ user: session?.user ?? null, isLoading: false });
-        },
-      );
-
-      // Store subscription for cleanup
-      set({ _subscription: subscription });
+      // Always call getSession first
+      logger.debug('[auth] Calling getSession...');
+      const { data: { session } } = await supabase.auth.getSession();
+      logger.log('[auth] Initial session check:', session?.user?.id || 'no user');
+      set({ user: session?.user ?? null });
     } catch (error) {
-      logger.error('Error checking auth:', error);
-      set({ user: null, isLoading: false });
+      logger.error('[auth] getSession failed:', error);
+      set({ user: null });
+    } finally {
+      // CRITICAL: Always mark ready, even on errors
+      set({ isLoading: false, authReady: true });
+      logger.log('[auth] Auth initialization complete, authReady = true');
+    }
+
+    // Single global listener - set authReady on every event
+    logger.debug('[auth] Setting up auth state change listener');
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event: AuthChangeEvent, session: Session | null) => {
+        logger.log('[auth] State change:', event, session?.user?.id || 'no user');
+        set({ user: session?.user ?? null, authReady: true });
+      },
+    );
+
+    // Store subscription for cleanup
+    logger.debug('[auth] Storing subscription for cleanup');
+    set({ _subscription: subscription });
+  },
+
+  unsubscribeAuth: () => {
+    const { _subscription } = get();
+    if (_subscription) {
+      logger.log('[auth] Cleaning up auth subscription');
+      _subscription.unsubscribe();
+      set({ _subscription: undefined });
     }
   },
 }));

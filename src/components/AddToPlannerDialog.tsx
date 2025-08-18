@@ -48,8 +48,10 @@ const AddToPlannerDialog: React.FC<AddToPlannerDialogProps> = ({
         user.id,
         selectedDate,
         selectedSlot,
-        recipeId,
-        'manual'
+        {
+          recipeId,
+          source: 'manual'
+        }
       );
 
       if (result) {

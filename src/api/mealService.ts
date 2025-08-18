@@ -9,11 +9,11 @@ export class MealService {
   static async getMealsForDate(userId: string, date: string): Promise<Meal[]> {
     try {
       const { data, error } = await supabase
-        .from('meals')
+        .from('planner_entries')
         .select('*')
         .eq('user_id', userId)
         .eq('date', date)
-        .order('meal_type');
+        .order('slot');
 
       if (error) {
         logger.error('Error fetching meals:', error);
@@ -37,13 +37,13 @@ export class MealService {
   ): Promise<Meal[]> {
     try {
       const { data, error } = await supabase
-        .from('meals')
+        .from('planner_entries')
         .select('*')
         .eq('user_id', userId)
         .gte('date', startDate)
         .lte('date', endDate)
         .order('date')
-        .order('meal_type');
+        .order('slot');
 
       if (error) {
         logger.error('Error fetching meals for date range:', error);
@@ -63,7 +63,7 @@ export class MealService {
   static async getAllMeals(userId: string): Promise<Meal[]> {
     try {
       const { data, error } = await supabase
-        .from('meals')
+        .from('planner_entries')
         .select(
           `
           *,
@@ -72,7 +72,7 @@ export class MealService {
         )
         .eq('user_id', userId)
         .order('date', { ascending: false })
-        .order('meal_type');
+        .order('slot');
 
       if (error) {
         logger.error('Error fetching all meals:', error);
@@ -87,54 +87,53 @@ export class MealService {
   }
 
   /**
-   * Add a meal
+   * Schedule a recipe to planner (shows name in UI)
    */
-  static async addMeal(
-    userId: string,
-    meal: Omit<Meal, 'id' | 'user_id' | 'created_at'>,
-  ): Promise<Meal | null> {
+  static async scheduleRecipe(opts: {
+    recipeId: string;
+    recipeName: string;      // use to fill name_cached immediately
+    date: string;            // 'YYYY-MM-DD'
+    slot: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+    notes?: string;
+  }): Promise<Meal | null> {
     try {
-      // Handle MealDB recipe IDs (strings) vs UUID recipe IDs
-      let recipeId = meal.recipe_id;
+      const user = (await supabase.auth.getUser()).data.user;
+      if (!user) throw new Error('Not signed in');
 
-      // If recipe_id is a MealDB ID (numeric string), we need to find the corresponding recipe in our database
-      if (recipeId && (/(^\d+$)/).test(recipeId)) {
-        // This is a MealDB ID, find the corresponding recipe in our database
+      // Get recipe name for name_cached
+      let recipeName = opts.recipeName;
+      if (!recipeName && opts.recipeId) {
         const { data: recipeData } = await supabase
           .from('recipes')
-          .select('id')
-          .eq('mealdb_id', recipeId)
-          .eq('user_id', userId)
+          .select('name')
+          .eq('id', opts.recipeId)
           .single();
-
-        if (recipeData) {
-          recipeId = recipeData.id;
-        } else {
-          // Recipe not found in our database, skip adding the meal
-          logger.warn(`Recipe with MealDB ID ${recipeId} not found in user's recipes`);
-          return null;
-        }
+        recipeName = recipeData?.name || '';
       }
 
       const { data, error } = await supabase
-        .from('meals')
+        .from('planner_entries')
         .insert({
-          user_id: userId,
-          date: meal.date,
-          meal_type: meal.meal_type,
-          recipe_id: recipeId,
-          status: meal.status || 'planned',
-          notes: meal.notes,
+          user_id: user.id,
+          plan_date: opts.date,
+          slot: opts.slot,
+          recipe_id: opts.recipeId,
+          notes: opts.notes ?? null,
+          name_cached: recipeName, // critical for UI
         })
-        .select()
-        .single();
+        .select('id');
 
       if (error) {
-        logger.error('Error adding meal:', error);
-        return null;
+        console.error('[planner insert error]', error, {
+          user_id: user.id,
+          plan_date: opts.date,
+          slot: opts.slot,
+          recipe_id: opts.recipeId,
+          name_cached: recipeName
+        });
+        throw error;
       }
-
-      return data;
+      return data?.[0] ? { id: data[0].id } as Meal : null;
     } catch (error) {
       logger.error('Meal service error:', error);
       return null;
@@ -150,9 +149,16 @@ export class MealService {
     updates: Partial<Meal>,
   ): Promise<Meal | null> {
     try {
+      // Convert meal_type to slot if present
+      const plannerUpdates: any = { ...updates };
+      if (updates.meal_type) {
+        plannerUpdates.slot = updates.meal_type;
+        delete plannerUpdates.meal_type;
+      }
+
       const { data, error } = await supabase
-        .from('meals')
-        .update(updates)
+        .from('planner_entries')
+        .update(plannerUpdates)
         .eq('id', mealId)
         .eq('user_id', userId)
         .select()
@@ -176,7 +182,7 @@ export class MealService {
   static async deleteMeal(userId: string, mealId: string): Promise<boolean> {
     try {
       const { error } = await supabase
-        .from('meals')
+        .from('planner_entries')
         .delete()
         .eq('id', mealId)
         .eq('user_id', userId);

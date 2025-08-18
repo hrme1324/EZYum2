@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { MealService } from '../api/mealService';
 import { RecipeService as UserRecipeService } from '../api/recipeService';
+import { RecommendationService } from '../api/recommendationService';
 import FilterBar from '../components/FilterBar';
 import RecipeCard from '../components/RecipeCard';
 import { useAuthStore } from '../state/authStore';
@@ -31,7 +32,7 @@ const RecipeHub: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [searchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<RecipeSource>('all');
-  const [lastCreatedAt, setLastCreatedAt] = useState<string | undefined>();
+
   const [hasMore, setHasMore] = useState(true);
 
   const loadAllRecipes = async () => {
@@ -56,7 +57,7 @@ const RecipeHub: React.FC = () => {
           area: '',
           instructions: meal.notes || '',
           image: '',
-          tags: [meal.meal_type, meal.status],
+          tags: [meal.meal_type],
           ingredients: [],
           videoUrl: '',
           websiteUrl: '',
@@ -77,7 +78,7 @@ const RecipeHub: React.FC = () => {
         setRecipes(mockDiscoveryRecipes);
       } else {
         // Load saved recipes
-        const savedRecipes = await UserRecipeService.getUserRecipes();
+        const savedRecipes = await UserRecipeService.getSavedRecipes();
         const savedWithSource = savedRecipes.map((recipe) => ({
           ...recipe,
           source: 'saved' as RecipeSource,
@@ -94,7 +95,7 @@ const RecipeHub: React.FC = () => {
           area: '',
           instructions: meal.notes || '',
           image: '',
-          tags: [meal.meal_type, meal.status],
+          tags: [meal.meal_type],
           ingredients: [],
           videoUrl: '',
           websiteUrl: '',
@@ -106,14 +107,14 @@ const RecipeHub: React.FC = () => {
         }));
         setWeeklyRecipes(mealsWithSource);
 
-        // Load discovery recipes with pagination
-        await loadDiscoveryRecipes();
-
-        // Load Recipes Plus
-        await loadPlusRecipes();
-
-        // Load For You recipes
-        await loadForYouRecipes();
+        // Load personalized discovery recipes
+        const discoveryRecipes = await RecommendationService.getPersonalizedRecommendations(user.id, 24);
+        const discoveryWithSource = discoveryRecipes.map((recipe) => ({
+          ...recipe,
+          source: 'discovery' as RecipeSource,
+          isSaved: false,
+        }));
+        setRecipes(discoveryWithSource);
       }
     } catch (error) {
       logger.error('Error loading recipes:', error);
@@ -139,10 +140,7 @@ const RecipeHub: React.FC = () => {
     }
 
     try {
-      const discoveryRecipes = await UserRecipeService.getRecipesWithPagination(
-        24,
-        append ? lastCreatedAt : undefined,
-      );
+      const discoveryRecipes = await UserRecipeService.getRandomDiscoveryRecipes(24);
 
       const recipesWithSource = discoveryRecipes.map((recipe) => ({
         ...recipe,
@@ -158,10 +156,6 @@ const RecipeHub: React.FC = () => {
 
       // Update pagination state
       if (discoveryRecipes.length > 0) {
-        const lastRecipe = discoveryRecipes[discoveryRecipes.length - 1];
-        if (lastRecipe.created_at) {
-          setLastCreatedAt(lastRecipe.created_at);
-        }
         setHasMore(discoveryRecipes.length === 24);
       } else {
         setHasMore(false);
@@ -214,7 +208,18 @@ const RecipeHub: React.FC = () => {
     }
 
     try {
-      const success = await UserRecipeService.saveMealDBRecipe(recipe, recipe.id);
+      // Track recipe view for recommendations
+      if (user) {
+        await RecommendationService.trackRecipeView(user.id, recipe.id);
+      }
+
+      const success = await UserRecipeService.saveMealDBRecipe({
+        mealdbId: recipe.id,
+        name: recipe.name,
+        image: recipe.image,
+        category: recipe.category,
+        area: recipe.area
+      });
       if (success) {
         setRecipes((prev) => prev.map((r) => (r.id === recipe.id ? { ...r, isSaved: true } : r)));
         setSavedRecipes((prev) => [...prev, { ...recipe, isSaved: true }]);
@@ -225,6 +230,17 @@ const RecipeHub: React.FC = () => {
     } catch (error) {
       logger.error('Error saving recipe:', error);
       toast.error('Failed to save recipe');
+    }
+  };
+
+  // Track recipe views for recommendations
+  const handleRecipeView = async (recipeId: string) => {
+    if (user && !IS_OFFLINE_MODE) {
+      try {
+        await RecommendationService.trackRecipeView(user.id, recipeId);
+      } catch (error) {
+        logger.warn('Could not track recipe view:', error);
+      }
     }
   };
 
@@ -265,7 +281,7 @@ const RecipeHub: React.FC = () => {
 
   const handleFiltersChange = () => {
     // Reset pagination when filters change
-    setLastCreatedAt(undefined);
+
     setHasMore(true);
     // Reload recipes with new filters
     loadDiscoveryRecipes();
@@ -433,6 +449,7 @@ const RecipeHub: React.FC = () => {
                   recipe={recipe}
                   onSave={() => handleSaveRecipe(recipe)}
                   onDelete={recipe.isSaved ? () => handleUnsaveRecipe(recipe.id) : undefined}
+                  onView={() => handleRecipeView(recipe.id)}
                   showActions={true}
                   quickActions={[
                     {

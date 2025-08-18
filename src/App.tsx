@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import LoadingSpinner from './components/LoadingSpinner';
 import Navigation from './components/Navigation';
@@ -13,9 +14,28 @@ import RecipeHub from './screens/RecipeHub';
 import { useAuthStore } from './state/authStore';
 
 function App() {
-  const { user, isLoading } = useAuthStore();
+  const { user, authReady, initAuth, unsubscribeAuth } = useAuthStore();
 
-  if (isLoading) {
+  // Initialize auth on mount with boot failsafe
+  useEffect(() => {
+    initAuth();
+
+    // Boot failsafe timeout - force authReady after 8 seconds
+    const bootTimeout = setTimeout(() => {
+      if (!authReady) {
+        console.warn('[boot] Forcing authReady after timeout - auth may be stuck');
+        useAuthStore.setState({ authReady: true });
+      }
+    }, 8000);
+
+    return () => {
+      clearTimeout(bootTimeout);
+      unsubscribeAuth(); // Clean up auth subscription
+    };
+  }, []);
+
+  // CRITICAL: Only show spinner when auth is not ready
+  if (!authReady) {
     return (
       <div className="min-h-screen bg-off-white flex items-center justify-center">
         <LoadingSpinner />
@@ -23,6 +43,7 @@ function App() {
     );
   }
 
+  // Once auth is ready, show appropriate content
   if (!user) {
     return <Onboarding />;
   }

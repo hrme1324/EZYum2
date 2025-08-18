@@ -13,12 +13,17 @@ export class RecipeService {
   /**
    * Get user's saved recipes from Supabase
    */
-  static async getUserRecipes(): Promise<UserRecipe[]> {
+  static async getUserRecipes(limit: number = 50): Promise<UserRecipe[]> {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+
       const { data: recipes, error } = await supabase
         .from('recipes')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('id,name,category,area,instructions,image,tags,ingredients,video_url,website_url,cooking_time,difficulty,created_at,updated_at,user_id,source_type,mealdb_id')
+        .eq('user_id', user.id)
+        .order('updated_at', { ascending: false })
+        .limit(limit);
 
       if (error) {
         logger.error('Error fetching user recipes:', error);
@@ -42,37 +47,36 @@ export class RecipeService {
   /**
    * Get recipes with pagination
    */
-  static async getRecipesWithPagination(
-    limit: number = 24,
-    lastCreatedAt?: string,
-  ): Promise<Recipe[]> {
+  static async getRandomDiscoveryRecipes(count: number = 10): Promise<Recipe[]> {
     try {
-      let query = supabase
+      logger.debug(`[discovery] Getting ${count} random discovery recipes`);
+
+      // Random offset for variety
+      const startOffset = Math.floor(Math.random() * 10000);
+      logger.debug(`[discovery] Using random offset: ${startOffset}`);
+
+      const { data: recipes, error } = await supabase
         .from('recipes')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(limit);
-
-      if (lastCreatedAt) {
-        query = query.lt('created_at', lastCreatedAt);
-      }
-
-      const { data: recipes, error } = await query;
+        .select('id,name,image,category,area,tags,ingredients,cooking_time,difficulty,updated_at')
+        .is('user_id', null)
+        .eq('source_type', 'seed')
+        .order('id', { ascending: true })
+        .range(startOffset, startOffset + count - 1);
 
       if (error) {
-        logger.error('Error fetching recipes with pagination:', error);
+        logger.error('Error fetching random discovery recipes:', error);
         throw error;
       }
 
       return recipes?.map((recipe: any) => fromDbRecipe(recipe)) || [];
     } catch (error) {
-      logger.error('Error getting recipes with pagination:', error);
+      logger.error('Error getting random discovery recipes:', error);
       return [];
     }
   }
 
   /**
-   * Get Recipes Plus (mealdb recipes with video or website)
+   * Get Recipes Plus (MealDB API only; NOT from CSV)
    */
   static async getRecipesPlus(): Promise<Recipe[]> {
     try {
@@ -245,43 +249,33 @@ export class RecipeService {
   }
 
   /**
-   * Save a MealDB recipe to user's collection
+   * Save a MealDB recipe as favorite: shadow insert + saved_recipes
    */
-  static async saveMealDBRecipe(recipe: Recipe, mealdbId: string): Promise<boolean> {
+  static async saveMealDBRecipe(mealdb: {
+    mealdbId: string; name: string; image?: string; category?: string; area?: string;
+  }): Promise<{ recipeId: string }> {
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('User not authenticated');
-      }
-
-      const { error } = await supabase.from('recipes').insert({
-        user_id: user.id,
-        name: recipe.name,
-        category: recipe.category,
-        area: recipe.area,
-        instructions: recipe.instructions,
-        image: recipe.image,
-        tags: recipe.tags,
-        ingredients: recipe.ingredients,
-        video_url: recipe.videoUrl,
-        website_url: recipe.websiteUrl,
-        cooking_time: recipe.cookingTime,
-        difficulty: recipe.difficulty,
-        source_type: 'mealdb',
-        mealdb_id: mealdbId,
+      const { data: rpc, error: rpcErr } = await supabase.rpc('upsert_mealdb_seed', {
+        p_mealdb_id: mealdb.mealdbId,
+        p_name: mealdb.name,
+        p_image: mealdb.image ?? null,
+        p_category: mealdb.category ?? null,
+        p_area: mealdb.area ?? null
       });
+      if (rpcErr) throw rpcErr;
+      const recipeId: string = rpc;
 
-      if (error) {
-        logger.error('Error saving MealDB recipe:', error);
-        throw error;
-      }
+      const user = (await supabase.auth.getUser()).data.user;
+      if (!user) throw new Error('Not signed in');
 
-      return true;
+      const { error } = await supabase.from('saved_recipes').insert({
+        user_id: user.id, recipe_id: recipeId
+      });
+      if (error && error.code !== '23505') throw error; // ignore duplicate
+      return { recipeId };
     } catch (error) {
       logger.error('Error saving MealDB recipe:', error);
-      return false;
+      throw error;
     }
   }
 
@@ -336,6 +330,66 @@ export class RecipeService {
     } catch (error) {
       logger.error('Error updating recipe:', error);
       return false;
+    }
+  }
+
+  /**
+   * Unsave by recipeId
+   */
+  static async unsaveRecipe(recipeId: string): Promise<boolean> {
+    try {
+      const user = (await supabase.auth.getUser()).data.user;
+      if (!user) throw new Error('Not signed in');
+      const { error } = await supabase
+        .from('saved_recipes')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('recipe_id', recipeId);
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      logger.error('Error unsaving recipe:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Saved recipes (join)
+   */
+  static async getSavedRecipes(limit: number = 100): Promise<Recipe[]> {
+    try {
+      const user = (await supabase.auth.getUser()).data.user;
+      if (!user) throw new Error('Not signed in');
+
+      // Get saved list first (fast)
+      const { data: saved, error: sErr } = await supabase
+        .from('saved_recipes')
+        .select('recipe_id, created_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(limit);
+      if (sErr) throw sErr;
+
+      const ids = (saved ?? []).map(r => r.recipe_id);
+      if (ids.length === 0) return [];
+
+      const { data: recipes, error: rErr } = await supabase
+        .from('recipes')
+        .select('id,name,category,area,instructions,image,tags,ingredients,video_url,website_url,cooking_time,difficulty,created_at,updated_at')
+        .in('id', ids);
+      if (rErr) throw rErr;
+
+      const map = new Map(recipes.map(r => [r.id, r]));
+      return (saved ?? []).map(s => {
+        const recipe = map.get(s.recipe_id);
+        if (recipe) {
+          return fromDbRecipe(recipe);
+        }
+        return null;
+      }).filter(Boolean) as Recipe[];
+    } catch (error) {
+      logger.error('Error getting saved recipes:', error);
+      throw error;
     }
   }
 

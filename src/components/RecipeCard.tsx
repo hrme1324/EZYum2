@@ -15,6 +15,7 @@ interface RecipeCardProps {
   recipe: Recipe;
   onSave?: () => void;
   onDelete?: () => void;
+  onView?: () => void;
   showActions?: boolean;
   quickActions?: QuickAction[];
 }
@@ -23,6 +24,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
   recipe,
   onSave,
   onDelete,
+  onView,
   showActions = true,
   quickActions,
 }) => {
@@ -67,7 +69,8 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
           <img
             src={recipe.image}
             alt={recipe.name}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover cursor-pointer"
+            onClick={() => onView?.()}
             onError={(e) => {
               e.currentTarget.style.display = 'none';
             }}

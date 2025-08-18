@@ -79,17 +79,17 @@ export interface Ingredient {
   measure: string;
 }
 
-// Meal types
+// Meal types (now using planner_entries table)
 export interface Meal {
   id: string;
   user_id: string;
   date: string;
-  meal_type: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+  meal_type: 'breakfast' | 'lunch' | 'dinner' | 'snack'; // Maps to 'slot' in DB
   recipe_id?: string;
-  recipe_name?: string; // For custom recipe names
-  status: 'planned' | 'cooked' | 'skipped';
+  name_cached?: string; // Cached name for instant UI display
   notes?: string;
   created_at: string;
+  updated_at?: string;
 }
 
 // Grocery list types

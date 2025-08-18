@@ -10,6 +10,7 @@ interface ImportMetaEnv {
   readonly VITE_BACKEND_URL: string;
   readonly VITE_SITE_URL?: string;
   readonly VITE_OFFLINE_MODE?: string;
+  readonly VITE_INTENSIVE_LOGGING?: string;
   readonly DEV: boolean;
   readonly PROD: boolean;
 }

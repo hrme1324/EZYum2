@@ -145,7 +145,13 @@ const BrowseRecipes: React.FC = () => {
 
   const handleSaveRecipe = async (recipe: Recipe) => {
     try {
-      const success = await UserRecipeService.saveMealDBRecipe(recipe, recipe.id);
+      const success = await UserRecipeService.saveMealDBRecipe({
+        mealdbId: recipe.id,
+        name: recipe.name,
+        image: recipe.image,
+        category: recipe.category,
+        area: recipe.area
+      });
       if (success) {
         toast.success('Recipe saved to your collection!');
       } else {
