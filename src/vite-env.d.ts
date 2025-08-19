@@ -11,6 +11,18 @@ interface ImportMetaEnv {
   readonly VITE_SITE_URL?: string;
   readonly VITE_OFFLINE_MODE?: string;
   readonly VITE_INTENSIVE_LOGGING?: string;
+  // Debug logging environment variables
+  readonly VITE_DEBUG_LOGGING?: string;
+  readonly VITE_DEBUG_LEVEL?: string;
+  readonly VITE_DEBUG_TIMING?: string;
+  readonly VITE_DEBUG_STACKS?: string;
+  readonly VITE_DEBUG_USER_CONTEXT?: string;
+  readonly VITE_DEBUG_NETWORK?: string;
+  readonly VITE_DEBUG_STATE?: string;
+  readonly VITE_DEBUG_PERFORMANCE?: string;
+  readonly VITE_DEBUG_CONSOLE?: string;
+  readonly VITE_DEBUG_STORAGE?: string;
+  readonly VITE_DEBUG_MAX_LOGS?: string;
   readonly DEV: boolean;
   readonly PROD: boolean;
 }
